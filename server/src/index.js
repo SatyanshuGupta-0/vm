@@ -81,7 +81,7 @@ app.use("/api/contact", contactRouter);
 // Start server
 const start = async () => {
   try {
-    app.listen(port,"192.168.31.244", () => {
+    app.listen(port, () => {
       console.log(`Server running at port ${port}`);
     });
   } catch (error) {

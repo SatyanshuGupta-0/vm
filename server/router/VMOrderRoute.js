@@ -20,6 +20,6 @@ router.put("/cancel/:id", auth, cancelOrderController);
 router.get("/user-orders", auth, viewOrderController);
 
 // Admin: View all orders
-router.get("/all-orders", getAllOrdersController);
+router.get("/all-orders",isAdmin, getAllOrdersController);
 
 module.exports = router;

@@ -12,16 +12,14 @@ const { verify } = require("crypto");
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+
 const googleLoginController = async (req, res) => {
   try {
     const { token } = req.body;
+    console.log("Received token:", token);
 
     if (!token) {
-      return res.status(400).json({
-        message: "Missing Google token",
-        success: false,
-        error: true,
-      });
+      return res.status(400).json({ message: "Missing token", success: false });
     }
 
     const ticket = await client.verifyIdToken({
@@ -30,57 +28,62 @@ const googleLoginController = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
+    console.log("Google Payload:", payload);
+
     const { email_verified, email, name, picture } = payload;
 
     if (!email_verified) {
-      return res.status(400).json({
-        message: "Google email is not verified",
-        success: false,
-        error: true,
-      });
+      return res.status(400).json({ message: "Email not verified", success: false });
     }
 
     let user = await UserModel.findOne({ email });
 
     if (!user) {
+      // 🔥 DEBUG HERE
+      console.log("Registering new user from Google...");
+
       user = new UserModel({
         name,
         email,
-        password: "",
+        password: "", // because Google
         verify_email: true,
         avatar: picture,
         status: "Active",
         role: ["USER"],
       });
+
       await user.save();
     } else {
       if (user.status !== "Active") {
         return res.status(403).json({
-          message: "Account is disabled. Contact admin.",
+          message: "Account disabled by admin",
           success: false,
-          error: true,
         });
       }
     }
 
     const accessToken = await generatedAccessToken(user._id);
     const refreshToken = await generatedRefreshToken(user._id);
-    
- const cookieOptions = {
+
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: "/",
-      maxAge: 1000 * 60 * 15, // 15 minutes for accessToken
-    };
+      maxAge: 1000 * 60 * 15,
+    });
 
-    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 1 });
-    res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 }); 
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      path: "/",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
 
     return res.status(200).json({
-      message: "Google login successful",
+      message: "Google login/register successful",
       success: true,
-      error: false,
       data: {
         accessToken,
         refreshToken,
@@ -93,12 +96,8 @@ const googleLoginController = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Google Login Error:", error.message || error);
-    return res.status(500).json({
-      message: "Internal Server Error",
-      success: false,
-      error: true,
-    });
+    console.error("❌ Google Auth Error:", error.message || error);
+    return res.status(500).json({ message: "Server Error", error: true });
   }
 };
 

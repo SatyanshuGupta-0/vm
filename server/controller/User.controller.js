@@ -102,12 +102,20 @@ const googleLoginController = async (req, res) => {
 };
 
 
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const UserModel = require("../model/User.model");
+const sendEmailFun = require("../utils/sendEmail");
+const verificationEmail = require("../mails/verifyEmail");
+
 const registerUserController = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Input validation
-    if (!name || !email || !password) {
+    const isGoogleSignup = !password;
+
+    // Basic validation
+    if (!name || !email || (!password && !isGoogleSignup)) {
       return res.status(400).json({
         message: "Please provide name, email, and password",
         error: true,
@@ -117,17 +125,16 @@ const registerUserController = async (req, res) => {
 
     const existingUser = await UserModel.findOne({ email });
 
-    // ✅ Case 1: User exists
+    // ✅ CASE 1: Existing User
     if (existingUser) {
       if (existingUser.verify_email) {
-        // 🔒 Already verified user
         return res.status(400).json({
           message: "User already registered and verified. Please login.",
           success: false,
           error: true,
         });
       } else {
-        // 🟡 Not verified: resend OTP
+        // ⏳ Not verified — resend OTP
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
         existingUser.otp = newOtp;
         existingUser.otpExpires = Date.now() + 600000;
@@ -148,10 +155,12 @@ const registerUserController = async (req, res) => {
       }
     }
 
-    // ✅ Case 2: Create new user
+    // ✅ CASE 2: New User
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
+
+    const hashPassword = password
+      ? await bcrypt.hash(password, await bcrypt.genSalt(10))
+      : "";
 
     const user = new UserModel({
       name,
@@ -159,38 +168,71 @@ const registerUserController = async (req, res) => {
       password: hashPassword,
       otp: verifyCode,
       otpExpires: Date.now() + 600000, // 10 minutes
-      verify_email: false,
-      role: ["USER"], // ✅ or "user", depending on your enum
+      verify_email: isGoogleSignup ? true : false,
+      avatar: req.body.picture || "", // Optional: profile pic from Google
+      role: ["USER"],
     });
 
     await user.save();
 
-    const emailSent = await sendEmailFun(
-      email,
-      "Verify Email From VM App",
-      "",
-      verificationEmail(name, verifyCode)
-    );
+    // If not Google, send verification email
+    if (!isGoogleSignup) {
+      const emailSent = await sendEmailFun(
+        email,
+        "Verify Email From VM App",
+        "",
+        verificationEmail(name, verifyCode)
+      );
 
-    if (!emailSent) {
-      return res.status(500).json({
-        message: "Failed to send verification email",
-        error: true,
-        success: false,
+      if (!emailSent) {
+        return res.status(500).json({
+          message: "Failed to send verification email",
+          error: true,
+          success: false,
+        });
+      }
+
+      const token = jwt.sign(
+        { email: user.email, id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      return res.status(201).json({
+        message: "User registered successfully! Please verify your email.",
+        error: false,
+        success: true,
+        token,
       });
     }
 
-    const token = jwt.sign(
-      { email: user.email, id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+    // ✅ For Google Signup — directly return tokens
+    const accessToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
     );
 
     return res.status(201).json({
-      message: "User registered successfully! Please verify your email.",
-      error: false,
+      message: "Google signup successful",
       success: true,
-      token,
+      error: false,
+      data: {
+        accessToken,
+        refreshToken,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+        },
+      },
     });
   } catch (error) {
     console.error("❌ Registration Error:", error);
@@ -201,6 +243,11 @@ const registerUserController = async (req, res) => {
     });
   }
 };
+
+module.exports = {
+  registerUserController,
+};
+
 
 const verifyEmailController = async (req, res) => {
     try {

@@ -11,16 +11,22 @@ const { response } = require("express");
 const { verify } = require("crypto");
 const { OAuth2Client } = require('google-auth-library');
 
-
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const googleLoginController = async (req, res) => {
   try {
-    const { tokenId } = req.body;
+    const { token } = req.body;
 
-    // 1. Verify Google token
+    if (!token) {
+      return res.status(400).json({
+        message: "Missing Google token",
+        success: false,
+        error: true,
+      });
+    }
+
     const ticket = await client.verifyIdToken({
-      idToken: tokenId,
+      idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
@@ -35,15 +41,13 @@ const googleLoginController = async (req, res) => {
       });
     }
 
-    // 2. Check if user exists
     let user = await UserModel.findOne({ email });
 
     if (!user) {
-      // 3. If user not found, create a new one
       user = new UserModel({
         name,
         email,
-        password: "",  // No password for Google login
+        password: "",
         verify_email: true,
         avatar: picture,
         status: "Active",
@@ -51,7 +55,6 @@ const googleLoginController = async (req, res) => {
       });
       await user.save();
     } else {
-      // 4. User exists but is inactive
       if (user.status !== "Active") {
         return res.status(403).json({
           message: "Account is disabled. Contact admin.",
@@ -61,11 +64,9 @@ const googleLoginController = async (req, res) => {
       }
     }
 
-    // 5. Generate tokens
     const accessToken = await generatedAccessToken(user._id);
     const refreshToken = await generatedRefreshToken(user._id);
 
-    // 6. Set cookies
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -92,7 +93,7 @@ const googleLoginController = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Google Login Error:", error);
+    console.error("Google Login Error:", error.message || error);
     return res.status(500).json({
       message: "Internal Server Error",
       success: false,

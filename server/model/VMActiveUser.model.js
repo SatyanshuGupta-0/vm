@@ -1,8 +1,16 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const activeUserSchema = new mongoose.Schema({
+  sessionId: {
+    type: String,
+    unique: true,
+  },
   ip: String,
-  lastSeen: { type: Date, default: Date.now }
+  userAgent: String,
+  lastSeen: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('ActiveUser', activeUserSchema);
+module.exports = mongoose.model("ActiveUser", activeUserSchema);

@@ -1,23 +1,48 @@
 const ActiveUser = require('../model/VMActiveUser.model');
 
+// Ping route to update session activity
 exports.pingUser = async (req, res) => {
-  const ip = req.ip;
-  const now = new Date();
+  try {
+    const sessionId = req.body.sessionId;
+    const ip = req.ip;
+    const userAgent = req.headers["user-agent"];
+    const now = new Date();
 
-  await ActiveUser.findOneAndUpdate(
-    { ip },
-    { lastSeen: now },
-    { upsert: true, new: true }
-  );
+    if (!sessionId) {
+      return res.status(400).json({ error: true, message: "Missing sessionId" });
+    }
 
-  res.sendStatus(200);
+    await ActiveUser.findOneAndUpdate(
+      { sessionId },
+      {
+        sessionId,
+        ip,
+        userAgent,
+        lastSeen: now,
+      },
+      { upsert: true, new: true }
+    );
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error("Ping error:", error.message);
+    res.status(500).json({ error: true, message: "Internal server error" });
+  }
 };
 
+// Get currently active users (within last 2s)
 exports.getLiveUsers = async (req, res) => {
-  const threshold = new Date(Date.now() - 2 * 1000); // 🕒 only 2 seconds of tolerance
+  try {
+    const threshold = new Date(Date.now() - 2 * 1000); // 2s active window
 
-  await ActiveUser.deleteMany({ lastSeen: { $lt: threshold } });
+    // Clean up stale sessions
+    await ActiveUser.deleteMany({ lastSeen: { $lt: threshold } });
 
-  const liveUsers = await ActiveUser.countDocuments();
-  res.json({ liveUsers });
+    // Count currently active users
+    const liveUsers = await ActiveUser.countDocuments();
+    res.json({ liveUsers });
+  } catch (error) {
+    console.error("Get live users error:", error.message);
+    res.status(500).json({ error: true, message: "Internal server error" });
+  }
 };

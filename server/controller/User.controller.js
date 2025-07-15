@@ -16,7 +16,6 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const googleLoginController = async (req, res) => {
   try {
     const { token } = req.body;
-    console.log("Received token:", token);
 
     if (!token) {
       return res.status(400).json({ message: "Missing token", success: false });
@@ -28,7 +27,6 @@ const googleLoginController = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-    console.log("Google Payload:", payload);
 
     const { email_verified, email, name, picture } = payload;
 
@@ -39,9 +37,6 @@ const googleLoginController = async (req, res) => {
     let user = await UserModel.findOne({ email });
 
     if (!user) {
-      // 🔥 DEBUG HERE
-      console.log("Registering new user from Google...");
-
       user = new UserModel({
         name,
         email,
@@ -170,7 +165,7 @@ const registerUserController = async (req, res) => {
 
     await newUser.save();
 
-    // 📧 For regular signup — send verification email
+    // 📧 REGULAR SIGNUP FLOW
     if (!isGoogleSignup) {
       const emailSent = await sendEmailFun(
         email,
@@ -201,18 +196,9 @@ const registerUserController = async (req, res) => {
       });
     }
 
-    // ✅ For Google signup — skip email verification and return tokens
-    const accessToken = jwt.sign(
-      { id: newUser._id },
-      process.env.JWT_ACCESS_SECRET,
-      { expiresIn: "15m" }
-    );
-
-    const refreshToken = jwt.sign(
-      { id: newUser._id },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: "7d" }
-    );
+    // ✅ GOOGLE SIGNUP FLOW — generate tokens using utility functions
+    const accessToken = await generatedAccessToken(newUser._id);
+    const refreshToken = await generatedRefreshToken(newUser._id);
 
     newUser.access_token = accessToken;
     newUser.refresh_token = refreshToken;
@@ -243,9 +229,6 @@ const registerUserController = async (req, res) => {
     });
   }
 };
-
-
-
 
 const verifyEmailController = async (req, res) => {
     try {

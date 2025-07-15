@@ -12,9 +12,9 @@ cron.schedule("* * * * *", async () => {
     });
 
     if (result.deletedCount > 0) {
-      console.log(`[CRON] Deleted ${result.deletedCount} cancelled orders older than 24 hours`);
+     
     } else {
-      console.log("[CRON] No cancelled orders to delete.");
+      
     }
   } catch (error) {
     console.error("[CRON ERROR] Failed to delete old cancelled orders:", error.message);

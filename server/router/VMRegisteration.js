@@ -28,7 +28,7 @@ const upload = require("../middlewares/multer");
 router.post("/register", registerUserController);
 router.post("/verifyEmail", verifyEmailController);
 router.post("/login", loginUserController);
-router.post("/google-login", googleLoginController);
+router.post("/google-auth", googleLoginController);
 router.post("/forgot-password", forgetPasswordController);
 router.post("/verify-forgot-password-otp", verifyForgotPasswordOtp);
 router.post("/update-password", auth, updatePassword);

@@ -102,19 +102,12 @@ const googleLoginController = async (req, res) => {
 };
 
 
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const UserModel = require("../model/User.model");
-const sendEmailFun = require("../utils/sendEmail");
-const verificationEmail = require("../mails/verifyEmail");
-
 const registerUserController = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, picture } = req.body;
 
     const isGoogleSignup = !password;
 
-    // Basic validation
     if (!name || !email || (!password && !isGoogleSignup)) {
       return res.status(400).json({
         message: "Please provide name, email, and password",
@@ -125,7 +118,7 @@ const registerUserController = async (req, res) => {
 
     const existingUser = await UserModel.findOne({ email });
 
-    // ✅ CASE 1: Existing User
+    // ✅ CASE 1: User already exists
     if (existingUser) {
       if (existingUser.verify_email) {
         return res.status(400).json({
@@ -134,7 +127,6 @@ const registerUserController = async (req, res) => {
           error: true,
         });
       } else {
-        // ⏳ Not verified — resend OTP
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
         existingUser.otp = newOtp;
         existingUser.otpExpires = Date.now() + 600000;
@@ -155,27 +147,30 @@ const registerUserController = async (req, res) => {
       }
     }
 
-    // ✅ CASE 2: New User
+    // ✅ CASE 2: Create new user
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     const hashPassword = password
       ? await bcrypt.hash(password, await bcrypt.genSalt(10))
       : "";
 
-    const user = new UserModel({
+    const newUser = new UserModel({
       name,
       email,
       password: hashPassword,
       otp: verifyCode,
-      otpExpires: Date.now() + 600000, // 10 minutes
+      otpExpires: Date.now() + 600000,
       verify_email: isGoogleSignup ? true : false,
-      avatar: req.body.picture || "", // Optional: profile pic from Google
+      avatar: {
+        url: picture || "",
+        publicId: null,
+      },
       role: ["USER"],
     });
 
-    await user.save();
+    await newUser.save();
 
-    // If not Google, send verification email
+    // 📧 For regular signup — send verification email
     if (!isGoogleSignup) {
       const emailSent = await sendEmailFun(
         email,
@@ -193,7 +188,7 @@ const registerUserController = async (req, res) => {
       }
 
       const token = jwt.sign(
-        { email: user.email, id: user._id },
+        { email: newUser.email, id: newUser._id },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
@@ -206,18 +201,23 @@ const registerUserController = async (req, res) => {
       });
     }
 
-    // ✅ For Google Signup — directly return tokens
+    // ✅ For Google signup — skip email verification and return tokens
     const accessToken = jwt.sign(
-      { id: user._id },
+      { id: newUser._id },
       process.env.JWT_ACCESS_SECRET,
       { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(
-      { id: user._id },
+      { id: newUser._id },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
+
+    newUser.access_token = accessToken;
+    newUser.refresh_token = refreshToken;
+    newUser.last_login_date = new Date();
+    await newUser.save();
 
     return res.status(201).json({
       message: "Google signup successful",
@@ -227,10 +227,10 @@ const registerUserController = async (req, res) => {
         accessToken,
         refreshToken,
         user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          avatar: user.avatar,
+          _id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          avatar: newUser.avatar.url,
         },
       },
     });
@@ -244,9 +244,7 @@ const registerUserController = async (req, res) => {
   }
 };
 
-module.exports = {
-  registerUserController,
-};
+
 
 
 const verifyEmailController = async (req, res) => {

@@ -67,6 +67,10 @@ const orderSchema = new mongoose.Schema({
     enum: ["placed", "cancelled"],
     default: "placed",
   },
+  cancelledAt: {
+    type: Date,
+    default: null,
+  },
 }, {
   timestamps: true,
 });

@@ -12,6 +12,95 @@ const { verify } = require("crypto");
 const { OAuth2Client } = require('google-auth-library');
 
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const googleLoginController = async (req, res) => {
+  try {
+    const { tokenId } = req.body;
+
+    // 1. Verify Google token
+    const ticket = await client.verifyIdToken({
+      idToken: tokenId,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email_verified, email, name, picture } = payload;
+
+    if (!email_verified) {
+      return res.status(400).json({
+        message: "Google email is not verified",
+        success: false,
+        error: true,
+      });
+    }
+
+    // 2. Check if user exists
+    let user = await UserModel.findOne({ email });
+
+    if (!user) {
+      // 3. If user not found, create a new one
+      user = new UserModel({
+        name,
+        email,
+        password: "",  // No password for Google login
+        verify_email: true,
+        avatar: picture,
+        status: "Active",
+        role: ["USER"],
+      });
+      await user.save();
+    } else {
+      // 4. User exists but is inactive
+      if (user.status !== "Active") {
+        return res.status(403).json({
+          message: "Account is disabled. Contact admin.",
+          success: false,
+          error: true,
+        });
+      }
+    }
+
+    // 5. Generate tokens
+    const accessToken = await generatedAccessToken(user._id);
+    const refreshToken = await generatedRefreshToken(user._id);
+
+    // 6. Set cookies
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      path: "/",
+    };
+
+    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 15 });
+    res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 });
+
+    return res.status(200).json({
+      message: "Google login successful",
+      success: true,
+      error: false,
+      data: {
+        accessToken,
+        refreshToken,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false,
+      error: true,
+    });
+  }
+};
+
 
 
 const registerUserController = async (req, res) => {
@@ -728,85 +817,6 @@ const userDetails = async (req, res) => {
   }
 };
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-const googleLoginController = async (req, res) => {
-  try {
-    const { tokenId } = req.body;  // tokenId sent from frontend after Google login
-
-    // Verify Google token
-    const ticket = await client.verifyIdToken({
-      idToken: tokenId,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    const { email_verified, email, name, picture } = payload;
-
-    if (!email_verified) {
-      return res.status(400).json({
-        message: "Email not verified by Google",
-        error: true,
-        success: false,
-      });
-    }
-
-    // Check if user exists in DB
-    let user = await UserModel.findOne({ email });
-
-    if (!user) {
-      // If user does not exist, create a new user with verified email
-      user = new UserModel({
-        name,
-        email,
-        password: "",  // no password since google login
-        verify_email: true,
-        avatar: picture,
-        status: "Active",
-      });
-      await user.save();
-    } else {
-      // If user exists but is inactive, send error
-      if (user.status !== "Active") {
-        return res.status(400).json({
-          message: "Contact Admin for account status",
-          error: true,
-          success: false,
-        });
-      }
-    }
-
-    // Generate tokens
-    const accessToken = await generatedAccessToken(user._id);
-    const refreshToken = await generatedRefreshToken(user._id);
-
-    // Set cookies options
-    const cookiesOption = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      path: '/',
-    };
-
-    // Set cookies
-    res.cookie("accessToken", accessToken, cookiesOption);
-    res.cookie("refreshToken", refreshToken, cookiesOption);
-
-    return res.json({
-      message: "Google login successful",
-      error: false,
-      success: true,
-      data: { accessToken, refreshToken, user },
-    });
-  } catch (error) {
-    console.error("Google login error:", error);
-    return res.status(500).json({
-      message: error.message || "Internal Server Error",
-      error: true,
-      success: false,
-    });
-  }
-};
 
 const getAllUsers = async (req, res) => {
   try {

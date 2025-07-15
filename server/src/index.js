@@ -1,5 +1,6 @@
 require("dotenv").config();
 require("../db/VMdb"); // MongoDB connection
+require("../controller/Order.Controller");
 
 const express = require("express");
 const app = express();

@@ -10,7 +10,6 @@ const fs = require('fs');
 const { response } = require("express");
 const { verify } = require("crypto");
 const { OAuth2Client } = require('google-auth-library');
-
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const googleLoginController = async (req, res) => {
@@ -66,16 +65,17 @@ const googleLoginController = async (req, res) => {
 
     const accessToken = await generatedAccessToken(user._id);
     const refreshToken = await generatedRefreshToken(user._id);
-
-    const cookieOptions = {
+    
+ const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: "/",
+      maxAge: 1000 * 60 * 15, // 15 minutes for accessToken
     };
 
-    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 15 });
-    res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 });
+    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 1 });
+    res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 }); 
 
     return res.status(200).json({
       message: "Google login successful",
@@ -101,7 +101,6 @@ const googleLoginController = async (req, res) => {
     });
   }
 };
-
 
 
 const registerUserController = async (req, res) => {

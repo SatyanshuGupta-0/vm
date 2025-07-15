@@ -1,6 +1,25 @@
+const cron = require("node-cron");
 const OrderModel = require("../model/VMOrder.model");
 const { v4: uuidv4 } = require("uuid");
 
+cron.schedule("* * * * *", async () => {
+  try {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
+
+    const result = await OrderModel.deleteMany({
+      status: "cancelled",
+      cancelledAt: { $lte: twentyFourHoursAgo },
+    });
+
+    if (result.deletedCount > 0) {
+      console.log(`[CRON] Deleted ${result.deletedCount} cancelled orders older than 24 hours`);
+    } else {
+      console.log("[CRON] No cancelled orders to delete.");
+    }
+  } catch (error) {
+    console.error("[CRON ERROR] Failed to delete old cancelled orders:", error.message);
+  }
+})
 // Place an Order
 const placeOrderController = async (req, res) => {
   try {

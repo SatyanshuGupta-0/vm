@@ -62,7 +62,7 @@ const googleLoginController = async (req, res) => {
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "None",
       path: "/",
       maxAge: 1000 * 60 * 15,

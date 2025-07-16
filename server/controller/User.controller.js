@@ -63,7 +63,7 @@ const googleLoginController = async (req, res) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      sameSite: "None",
       path: "/",
       maxAge: 1000 * 60 * 15,
     });
@@ -71,7 +71,7 @@ const googleLoginController = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      sameSite: "None",
       path: "/",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
@@ -312,7 +312,7 @@ const loginUserController = async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      sameSite: "None",
       path: "/",
       maxAge: 1000 * 60 * 15, // 15 minutes for accessToken
     };
@@ -341,7 +341,7 @@ const logoutController = async (req, res) => {
     const cookiesOption = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      sameSite: "None",
     };
 
     // Clear cookies
@@ -374,7 +374,7 @@ const userAvatarController = async (req, res) => {
 
         const userId = req.userId;
         const image = req.files;
-        console.log(image)
+       
 
         const user = await UserModel.findOne({ _id: userId });
 

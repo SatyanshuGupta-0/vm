@@ -70,7 +70,7 @@ const googleLoginController = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "None",
       path: "/",
       maxAge: 1000 * 60 * 60 * 24 * 7,
@@ -311,7 +311,7 @@ const loginUserController = async (req, res) => {
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "None",
       path: "/",
       maxAge: 1000 * 60 * 15, // 15 minutes for accessToken

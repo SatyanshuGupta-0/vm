@@ -5,7 +5,6 @@ const isAdmin = (...allowedRoles) => {
   return async (req, res, next) => {
     try {
       const authHeader = req.headers.authorization;
-
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ message: "No token provided" });
       }
@@ -14,19 +13,20 @@ const isAdmin = (...allowedRoles) => {
       const decoded = jwt.verify(token, process.env.SECRET_KEY_ACCESS_TOKEN);
 
       const admin = await Admin.findById(decoded.id).select("-password");
-
       if (!admin) {
         return res.status(401).json({ message: "Admin not found" });
       }
 
-      const adminRole = admin.role?.trim();
+      const adminRole = admin.role?.toLowerCase().trim(); // ✅ Cleaned
+      console.log("🎯 Admin role:", adminRole);
+      console.log("✅ Allowed Roles:", allowedRoles);
 
-
-      if (!allowedRoles.includes(adminRole)) {
+      const allowed = allowedRoles.map(r => r.toLowerCase());
+      if (!allowed.includes(adminRole)) {
         return res.status(403).json({ message: `Access denied for role: ${adminRole}` });
       }
 
-      req.admin = admin; // Attach admin to request
+      req.admin = admin;
       next();
     } catch (err) {
       console.error("❌ isAdmin Middleware Error:", err.message);

@@ -95,3 +95,13 @@ exports.getAdminProfile = async (req, res) => {
   if (!admin) return res.status(404).json({ message: "Admin not found" });
   res.json(admin);
 };
+
+exports.getAllAdmins = async (req, res) => {
+  try {
+    const admins = await Admin.find().select("-password -refresh_token");
+    res.status(200).json(admins);
+  } catch (error) {
+    console.error("Error fetching admins:", error.message);
+    res.status(500).json({ message: "Server Error" });
+  }
+};

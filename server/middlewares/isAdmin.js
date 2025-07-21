@@ -1,4 +1,3 @@
-// middleware/isAdmin.js
 const jwt = require("jsonwebtoken");
 const Admin = require("../model/VMAdmin.model");
 
@@ -19,13 +18,18 @@ const isAdmin = (...allowedRoles) => {
         return res.status(401).json({ message: "Admin not found" });
       }
 
-      if (!allowedRoles.includes(admin.role)) {
-        return res.status(403).json({ message: `Access denied for role: ${admin.role}` });
+      const adminRole = admin.role.trim(); // ✅ Trim to avoid hidden spaces
+      console.log("Allowed roles:", allowedRoles);
+      console.log("Admin role:", `"${adminRole}"`);
+
+      if (!allowedRoles.includes(adminRole)) {
+        return res.status(403).json({ message: `Access denied for role: ${adminRole}` });
       }
 
-      req.user = admin; // ✅ Use req.user everywhere
+      req.admin = admin;
       next();
     } catch (err) {
+      console.error("isAdmin error:", err.message);
       return res.status(401).json({ message: "Invalid token" });
     }
   };

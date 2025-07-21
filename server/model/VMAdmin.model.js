@@ -22,22 +22,15 @@ const adminSchema = new mongoose.Schema({
   type: String,
   default: ""
 },
- role: {
-  type: [String],
+role: {
+  type: String,
+  required: [true, "Role is required"],
   enum: [
-    "superadmin",   // Highest level, full access to everything
-    "admin",        // Manage users, orders, products, settings
-    "manager",      // Oversee operations, reports, team members
-    "support",      // Handles customer queries and support tickets
-    "accountant",   // Access to financial data, invoices, refunds
-    "hr",           // Manage employees, roles, attendance
-    "auditor",      // Read-only access for audits
-    "editor",       // Can edit content like banners, descriptions
-    "vendor",       // 3rd party product sellers (if marketplace)
-    "guest"         // Not logged in, limited access
-  ],
-  default: ["guest"]
-},
+    "superadmin", "admin", "manager", "support", "accountant",
+    "hr", "auditor", "editor", "vendor", "guest"
+  ]
+}
+
 }, {
   timestamps: true,
 });

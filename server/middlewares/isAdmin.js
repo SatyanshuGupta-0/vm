@@ -18,12 +18,11 @@ const isAdmin = (...allowedRoles) => {
       }
 
       const adminRole = admin.role?.toLowerCase().trim(); // ✅ Cleaned
-      console.log("🎯 Admin role:", adminRole);
-      console.log("✅ Allowed Roles:", allowedRoles);
+      
 
       const allowed = allowedRoles.map(r => r.toLowerCase());
       if (!allowed.includes(adminRole)) {
-        return res.status(403).json({ message: `Access denied for role: ${adminRole}` });
+        return res.status(403).json({ message: `Access denied for you` });
       }
 
       req.admin = admin;

@@ -9,7 +9,7 @@ const {
 } = require("../controller/Admin.Controller");
 const isAdmin = require("../middlewares/isAdmin");
 
-router.post("/registers", registerAdmin);
+router.post("/registers",isAdmin("superadmin") registerAdmin);
 router.post("/login", loginAdmin);
 router.get("/refresh-token", refreshToken);
 router.get("/logout", logoutAdmin);

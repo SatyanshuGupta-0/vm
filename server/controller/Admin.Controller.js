@@ -16,13 +16,13 @@ const setRefreshTokenCookie = (res, token) => {
 // 🔐 Register
 exports.registerAdmin = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const {  name, email, password, role } = req.body;
 
     const exist = await Admin.findOne({ email });
     if (exist)
       return res.status(400).json({ message: "Admin already exists" });
 
-    const newAdmin = await Admin.create({ email, password, role });
+    const newAdmin = await Admin.create({  name, email, password, role });
     res.status(201).json({ message: "Admin registered", admin: newAdmin });
   } catch (err) {
     res.status(500).json({ message: err.message });

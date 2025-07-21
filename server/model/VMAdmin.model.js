@@ -17,7 +17,7 @@ const adminSchema = new mongoose.Schema(
     },
     name: {
       type: String,
-      default: "Admin",
+     
     },
     refresh_token: {
       type: String,
@@ -36,7 +36,6 @@ const adminSchema = new mongoose.Schema(
         "auditor",
         "editor",
         "vendor",
-        "guest",
       ],
     },
   },

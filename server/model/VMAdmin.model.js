@@ -36,6 +36,7 @@ const adminSchema = new mongoose.Schema(
         "auditor",
         "editor",
         "vendor",
+        "shopkeeper",
       ],
     },
   },

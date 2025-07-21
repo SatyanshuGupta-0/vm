@@ -17,7 +17,21 @@ const adminSchema = new mongoose.Schema(
     },
     name: {
       type: String,
-     
+    },
+    shopname: {
+      type: String,
+    },
+    shoptype: {
+      type: String,
+    },
+    contact: {
+      type: String,
+    },
+    location:{
+      type: String,
+    },
+    operating_hours: {
+      type: String,
     },
     refresh_token: {
       type: String,

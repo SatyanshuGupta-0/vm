@@ -10,7 +10,7 @@ const {
 const protectAdmin = require("../middlewares/isAdmin");
 const authorizeRoles = require("../middlewares/roleAuth");
 
-router.post("/registers",authorizeRoles("superadmin"), registerAdmin);
+router.post("/registers",isAdmin("superadmin"), registerAdmin);
 router.post("/login", loginAdmin);
 router.get("/refresh-token", refreshToken);
 router.get("/logout", logoutAdmin);

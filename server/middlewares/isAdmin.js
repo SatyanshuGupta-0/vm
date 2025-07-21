@@ -1,21 +1,15 @@
-
- 
-// authorizeRoles.js
+// middleware/isAdmin.js
 const jwt = require("jsonwebtoken");
 const Admin = require("../model/VMAdmin.model");
 
-const authorizeRoles = (...allowedRoles) => {
+const isAdmin = (...allowedRoles) => {
   return async (req, res, next) => {
     const authHeader = req.headers.authorization;
-    let token;
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      token = authHeader.split(" ")[1];
-    }
-
-    if (!token) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "No token provided" });
     }
+
+    const token = authHeader.split(" ")[1];
 
     try {
       const decoded = jwt.verify(token, process.env.SECRET_KEY_ACCESS_TOKEN);
@@ -37,4 +31,4 @@ const authorizeRoles = (...allowedRoles) => {
   };
 };
 
-module.exports = authorizeRoles;
+module.exports = isAdmin;

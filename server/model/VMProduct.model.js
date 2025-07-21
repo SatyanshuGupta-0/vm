@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema(
     modelName: String,
     modelLink: String,
     modelPublicId: String,
-    category: String, 
+    category: String,
     catId: String,
     catName: String,
     subCatId: String,
@@ -24,38 +24,41 @@ const productSchema = new mongoose.Schema(
     thirdsubCatName: String,
     rating: { type: Number, default: 0 },
     isFeatured: { type: Boolean, default: false },
+
     variantOptions: [
-  {
-    _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
-    color: {
-      name: { type: String, required: true },
-      images: [
-        {
-          url: { type: String, required: true },
-          public_id: { type: String, required: true },
+      {
+        _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+        color: {
+          name: { type: String, required: true },
+          price: { type: Number, default: 0 },
+          images: [
+            {
+              url: { type: String, required: true },
+              public_id: { type: String, required: true },
+            },
+          ],
         },
-      ],
-    },
-    size: {
-      name: { type: String, },
-      scale: {
-        x: { type: Number, },
-        y: { type: Number, },
-        z: { type: Number, },
+        sizes: [
+          {
+            name: { type: String },
+            scale: {
+              x: { type: Number },
+              y: { type: Number },
+              z: { type: Number },
+            },
+            width: { type: String },
+            oldPrice: { type: Number },
+            price: { type: Number },
+            stock: { type: Number, default: 0 },
+            holeCount: { type: String },
+            pcd: { type: String },
+            cb: { type: String },
+            et: { type: String },
+            specificC: [String],
+          },
+        ],
       },
-    },
-    thirdsubCat:{ type: String },
-    width: { type: String, },
-    oldPrice: { type: Number, },
-    price: { type: Number, },
-    stock: { type: Number, default: 0 },
-    holeCount: { type: String },
-    pcd: { type: String },
-    cb: { type: String },
-    et: { type: String },
-    specificC: [String],
-  },
-],  
+    ],
   },
   {
     timestamps: true,
@@ -63,4 +66,3 @@ const productSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Product", productSchema);
-

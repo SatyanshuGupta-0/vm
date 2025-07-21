@@ -21,10 +21,6 @@ const isAdmin = (...allowedRoles) => {
 
       const adminRole = admin.role?.trim();
 
-      // Debug logs
-      console.log("✅ Authenticated Admin:", admin.email);
-      console.log("🔐 Role:", adminRole);
-      console.log("✅ Allowed Roles:", allowedRoles);
 
       if (!allowedRoles.includes(adminRole)) {
         return res.status(403).json({ message: `Access denied for role: ${adminRole}` });

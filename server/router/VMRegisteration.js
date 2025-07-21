@@ -43,7 +43,7 @@ router.put("/:id", auth, updateUserdetails);
 router.get("/user-details", auth, userDetails);
 
 // Admin routes
-router.get("/getuser",  isAdmin, getAllUsers);
+router.get("/getuser",  isAdmin("superadmin"), getAllUsers);
 router.get("/:id",  isAdmin, getUserByIdController);
 
 module.exports = router;

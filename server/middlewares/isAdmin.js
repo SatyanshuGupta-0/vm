@@ -19,11 +19,14 @@ const isAdmin = (...allowedRoles) => {
         return res.status(401).json({ message: "Admin not found" });
       }
 
+      console.log("Admin role:", admin.role); // ✅ Debug
+      console.log("Allowed roles:", allowedRoles); // ✅ Debug
+
       if (!allowedRoles.includes(admin.role)) {
         return res.status(403).json({ message: `Access denied for role: ${admin.role}` });
       }
 
-      req.admin = admin;
+      req.user = admin; // ✅ Fix: attach as req.user
       next();
     } catch (err) {
       return res.status(401).json({ message: "Invalid token" });

@@ -9,6 +9,7 @@ const {
 
 const auth = require("../middlewares/auth");
 const isAdmin = require("../middlewares/isAdmin");
+const authorizeRoles = require("../middlewares/roleAuth");
 
 // Place a new order
 router.post("/place", auth, placeOrderController);
@@ -20,6 +21,6 @@ router.put("/cancel/:id", auth, cancelOrderController);
 router.get("/user-orders", auth, viewOrderController);
 
 // Admin: View all orders
-router.get("/all-orders",isAdmin, getAllOrdersController);
+router.get("/all-orders",isAdmin,authorizeRoles("admin"), getAllOrdersController);
 
 module.exports = router;

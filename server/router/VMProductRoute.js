@@ -32,13 +32,13 @@ const {
 
 
 // 🔒 Admin-only routes
-router.post('/uploadImages',  isAdmin, upload.array('images'), uploadImages);
+router.post('/uploadImages',  isAdmin("superadmin"), upload.array('images'), uploadImages);
 router.post('/create', createProduct);
-router.delete('/:id',  isAdmin, deleteProduct);
-router.post('/deleteImage',  isAdmin, removeImageFromCloudinary);
-router.put('/updateProduct/:id',  isAdmin, updateProduct);
-router.post('/delete-model',  isAdmin, deleteModelController);
-router.delete('/:productId/variant/:variantId',  isAdmin, deleteVariantFromProduct);
+router.delete('/:id',  isAdmin("superadmin"), deleteProduct);
+router.post('/deleteImage',  isAdmin("superadmin"), removeImageFromCloudinary);
+router.put('/updateProduct/:id',  isAdmin("superadmin"), updateProduct);
+router.post('/delete-model',  isAdmin("superadmin"), deleteModelController);
+router.delete('/:productId/variant/:variantId',  isAdmin("superadmin"), deleteVariantFromProduct);
 
 // 🧑‍💼 Authenticated or public routes
 router.get('/search', searchProducts); // public

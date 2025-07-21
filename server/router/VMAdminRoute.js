@@ -13,6 +13,6 @@ router.post("/registers",isAdmin("superadmin"), registerAdmin);
 router.post("/login", loginAdmin);
 router.get("/refresh-token", refreshToken);
 router.get("/logout", logoutAdmin);
-router.get("/profile", isAdmin, getAdminProfile);
+router.get("/profile", isAdmin("superadmin"), getAdminProfile);
 
 module.exports = router;

@@ -404,30 +404,52 @@ exports.updateProduct = async (req, res) => {
 exports.getRelatedProducts = async (req, res) => {
   try {
     const { productId } = req.params;
-    const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: "Product not found" });
 
-    console.log("Product ID:", productId);
-    console.log("Product Category:", product.category);
+    const mainProduct = await Product.findById(productId).lean();
+    if (!mainProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
+    // Step 1: Extract data from main product
+    const mainCategory = mainProduct.category?.toString();
+    const mainSubCategory = mainProduct.subCategory?.toString();
+    const mainCompatibleCars = new Set();
+    const mainSizes = new Set();
+    const mainColors = new Set();
+
+    for (const variant of mainProduct.variantOptions || []) {
+      if (variant?.color?.name) {
+        mainColors.add(variant.color.name.toLowerCase());
+      }
+
+      for (const size of variant?.sizes || []) {
+        if (size?.name) {
+          mainSizes.add(size.name.toLowerCase());
+        }
+        if (size?.specificC?.length > 0) {
+          size.specificC.forEach((car) => mainCompatibleCars.add(car.toLowerCase()));
+        }
+      }
+    }
+
+    // Step 2: Search for related products using OR condition
     const related = await Product.find({
-      _id: { $ne: product._id },
-      category: product.category,
-    });
+      _id: { $ne: productId }, // Exclude current product
+      $or: [
+        { category: mainCategory },
+        { subCategory: mainSubCategory },
+        { "variantOptions.color.name": { $in: Array.from(mainColors) } },
+        { "variantOptions.sizes.name": { $in: Array.from(mainSizes) } },
+        { "variantOptions.sizes.specificC": { $in: Array.from(mainCompatibleCars) } },
+      ],
+    })
+      .limit(10)
+      .lean();
 
-    console.log("Related Raw Products:", related.length);
-
-    const expanded = await Promise.all(
-      related.map(async (p) => {
-        const populated = await p.populate("variantOptions.color").populate("variantOptions.size");
-        return populated;
-      })
-    );
-
-    return res.status(200).json({ related: expanded });
+    res.status(200).json({ related });
   } catch (err) {
     console.error("Error in getRelatedProducts:", err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Failed to fetch related products" });
   }
 };
 

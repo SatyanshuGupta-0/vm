@@ -11,13 +11,10 @@ const wishlistSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
-    productTitle: String,
-    image: String,
-    rating: Number,
-    price: Number,
-    oldPrice: Number,
-    brand: String,
-    discount: Number,
+    sizeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

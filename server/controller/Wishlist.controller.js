@@ -59,13 +59,7 @@ async function addToWishlistController(req, res) {
   const {
   productId,
   variantId,
-  productTitle,
-  image,
-  rating,
-  price,
-  oldPrice,
-  brand,
-  discount,
+  sizeId,
 } = req.body;
 
 if (!productId || !variantId) {
@@ -76,7 +70,7 @@ if (!productId || !variantId) {
   });
 }
 
-const existingItem = await wishlistModel.findOne({ userId, productId, variantId });
+const existingItem = await wishlistModel.findOne({ userId, productId, variantId, sizeId });
 
 if (existingItem) {
   return res.status(400).json({
@@ -89,14 +83,7 @@ if (existingItem) {
 const wishlist = new wishlistModel({
   productId,
   variantId,
-  productTitle,
-  image,
-  rating,
-  price,
-  oldPrice,
-  brand,
-  discount,
-  userId,
+  sizeId,
 });
 
 

@@ -333,73 +333,104 @@ exports.updateProduct = async (req, res) => {
 };
 
 // controllers/productController.js
+// exports.getRelatedProducts = async (req, res) => {
+//   try {
+//     const product = await Product.findById(req.params.productId);
+
+//     if (!product) {
+//       return res.status(404).json({ message: "Product not found" });
+//     }
+
+//     // Find related products by category, excluding the current product
+//     const rawRelated = await Product.find({
+//       _id: { $ne: product._id },
+//       category: product.category,
+//     }).limit(8); // Limit number of related base products
+
+//     const expanded = [];
+
+//     rawRelated.forEach(prod => {
+//       if (Array.isArray(prod.variantOptions) && prod.variantOptions.length > 0) {
+//         prod.variantOptions.forEach(variant => {
+//           expanded.push({
+//             _id: `${prod._id}-${variant._id}`, // Unique ID per variant
+//             name: prod.name,
+//             brand: prod.brand,
+//             category: prod.category,
+//             images: variant.color?.images?.length > 0 ? variant.color.images : prod.images,
+//             variantColor: variant.color?.name || "",
+//             variantSize: variant.size?.name || "",
+//             price: variant.price,
+//             oldPrice: variant.oldPrice,
+//             stock: variant.stock,
+//             rating: prod.rating || 0,
+//             createdAt: prod.createdAt,
+//             updatedAt: prod.updatedAt,
+//           });
+//         });
+//       } else {
+//         // No variants — push original product
+//         expanded.push({
+//           _id: prod._id,
+//           name: prod.name,
+//           brand: prod.brand,
+//           category: prod.category,
+//           images: prod.images,
+//           price: prod.price,
+//           stock: prod.stock,
+//           rating: prod.rating || 0,
+//           createdAt: prod.createdAt,
+//           updatedAt: prod.updatedAt,
+//         });
+//       }
+//     });
+
+//     // Optional: Shuffle the results so they appear randomly
+//     for (let i = expanded.length - 1; i > 0; i--) {
+//       const j = Math.floor(Math.random() * (i + 1));
+//       [expanded[i], expanded[j]] = [expanded[j], expanded[i]];
+//     }
+
+//     res.status(200).json({ related: expanded });
+//   } catch (err) {
+//     console.error("Error getting related products:", err);
+//     res.status(500).json({
+//       message: "Error getting related products",
+//       error: err.message,
+//     });
+//   }
+// };
+
 exports.getRelatedProducts = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.productId);
+    const { productId } = req.params;
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    console.log("Product ID:", productId);
+    console.log("Product Category:", product.category);
 
-    // Find related products by category, excluding the current product
-    const rawRelated = await Product.find({
+    const related = await Product.find({
       _id: { $ne: product._id },
       category: product.category,
-    }).limit(8); // Limit number of related base products
-
-    const expanded = [];
-
-    rawRelated.forEach(prod => {
-      if (Array.isArray(prod.variantOptions) && prod.variantOptions.length > 0) {
-        prod.variantOptions.forEach(variant => {
-          expanded.push({
-            _id: `${prod._id}-${variant._id}`, // Unique ID per variant
-            name: prod.name,
-            brand: prod.brand,
-            category: prod.category,
-            images: variant.color?.images?.length > 0 ? variant.color.images : prod.images,
-            variantColor: variant.color?.name || "",
-            variantSize: variant.size?.name || "",
-            price: variant.price,
-            oldPrice: variant.oldPrice,
-            stock: variant.stock,
-            rating: prod.rating || 0,
-            createdAt: prod.createdAt,
-            updatedAt: prod.updatedAt,
-          });
-        });
-      } else {
-        // No variants — push original product
-        expanded.push({
-          _id: prod._id,
-          name: prod.name,
-          brand: prod.brand,
-          category: prod.category,
-          images: prod.images,
-          price: prod.price,
-          stock: prod.stock,
-          rating: prod.rating || 0,
-          createdAt: prod.createdAt,
-          updatedAt: prod.updatedAt,
-        });
-      }
     });
 
-    // Optional: Shuffle the results so they appear randomly
-    for (let i = expanded.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [expanded[i], expanded[j]] = [expanded[j], expanded[i]];
-    }
+    console.log("Related Raw Products:", related.length);
 
-    res.status(200).json({ related: expanded });
+    const expanded = await Promise.all(
+      related.map(async (p) => {
+        const populated = await p.populate("variantOptions.color").populate("variantOptions.size");
+        return populated;
+      })
+    );
+
+    return res.status(200).json({ related: expanded });
   } catch (err) {
-    console.error("Error getting related products:", err);
-    res.status(500).json({
-      message: "Error getting related products",
-      error: err.message,
-    });
+    console.error("Error in getRelatedProducts:", err);
+    res.status(500).json({ message: err.message });
   }
 };
+
 
 
 

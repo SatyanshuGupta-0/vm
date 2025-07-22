@@ -40,6 +40,7 @@ const productSchema = new mongoose.Schema(
         },
         sizes: [
           {
+            _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
             name: { type: String },
             scale: {
               x: { type: Number },

@@ -11,10 +11,6 @@ const wishlistSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
-    sizeId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-    },
     productTitle: String,
     image: String,
     rating: Number,

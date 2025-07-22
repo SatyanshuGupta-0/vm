@@ -84,6 +84,7 @@ const wishlist = new wishlistModel({
   productId,
   variantId,
   sizeId,
+  userId,
 });
 
 

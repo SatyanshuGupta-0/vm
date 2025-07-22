@@ -401,58 +401,92 @@ exports.updateProduct = async (req, res) => {
 //   }
 // };
 
+
 exports.getRelatedProducts = async (req, res) => {
   try {
-    const { productId } = req.params;
+    const product = await Product.findById(req.params.productId);
 
-    const mainProduct = await Product.findById(productId).lean();
-    if (!mainProduct) {
+    if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Step 1: Extract data from main product
-    const mainCategory = mainProduct.category?.toString();
-    const mainSubCategory = mainProduct.subCategory?.toString();
-    const mainCompatibleCars = new Set();
-    const mainSizes = new Set();
-    const mainColors = new Set();
+    // Fetch related products from same category, excluding the current one
+    const rawRelated = await Product.find({
+      _id: { $ne: product._id },
+      category: product.category,
+    }).limit(12); // Adjust limit as needed
 
-    for (const variant of mainProduct.variantOptions || []) {
-      if (variant?.color?.name) {
-        mainColors.add(variant.color.name.toLowerCase());
-      }
+    const relatedVariants = [];
 
-      for (const size of variant?.sizes || []) {
-        if (size?.name) {
-          mainSizes.add(size.name.toLowerCase());
-        }
-        if (size?.specificC?.length > 0) {
-          size.specificC.forEach((car) => mainCompatibleCars.add(car.toLowerCase()));
-        }
+    rawRelated.forEach((prod) => {
+      if (Array.isArray(prod.variantOptions) && prod.variantOptions.length > 0) {
+        prod.variantOptions.forEach((variant) => {
+          if (Array.isArray(variant.sizes) && variant.sizes.length > 0) {
+            variant.sizes.forEach((size) => {
+              relatedVariants.push({
+                _id: `${prod._id}-${variant._id}-${size._id}`,
+                name: prod.name,
+                brand: prod.brand,
+                category: prod.category,
+                images: variant.color?.images?.length > 0 ? variant.color.images : prod.images,
+                variantColor: variant.color?.name || "",
+                variantSize: size.name || "",
+                price: size.price || 0,
+                oldPrice: size.oldPrice || 0,
+                stock: size.stock || 0,
+                rating: prod.rating || 0,
+                createdAt: prod.createdAt,
+                updatedAt: prod.updatedAt,
+              });
+            });
+          } else {
+            // Variant has no sizes – fallback to variant-level
+            relatedVariants.push({
+              _id: `${prod._id}-${variant._id}`,
+              name: prod.name,
+              brand: prod.brand,
+              category: prod.category,
+              images: variant.color?.images?.length > 0 ? variant.color.images : prod.images,
+              variantColor: variant.color?.name || "",
+              variantSize: "",
+              price: variant.price || 0,
+              oldPrice: variant.oldPrice || 0,
+              stock: variant.stock || 0,
+              rating: prod.rating || 0,
+              createdAt: prod.createdAt,
+              updatedAt: prod.updatedAt,
+            });
+          }
+        });
+      } else {
+        // No variantOptions at all — fallback to base product
+        relatedVariants.push({
+          _id: prod._id.toString(),
+          name: prod.name,
+          brand: prod.brand,
+          category: prod.category,
+          images: prod.images,
+          price: prod.price || 0,
+          stock: prod.stock || 0,
+          rating: prod.rating || 0,
+          createdAt: prod.createdAt,
+          updatedAt: prod.updatedAt,
+        });
       }
+    });
+
+    // Shuffle results (optional)
+    for (let i = relatedVariants.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [relatedVariants[i], relatedVariants[j]] = [relatedVariants[j], relatedVariants[i]];
     }
 
-    // Step 2: Search for related products using OR condition
-    const related = await Product.find({
-      _id: { $ne: productId }, // Exclude current product
-      $or: [
-        { category: mainCategory },
-        { subCategory: mainSubCategory },
-        { "variantOptions.color.name": { $in: Array.from(mainColors) } },
-        { "variantOptions.sizes.name": { $in: Array.from(mainSizes) } },
-        { "variantOptions.sizes.specificC": { $in: Array.from(mainCompatibleCars) } },
-      ],
-    })
-      .limit(10)
-      .lean();
-
-    res.status(200).json({ related });
+    res.status(200).json({ related: relatedVariants });
   } catch (err) {
-    console.error("Error in getRelatedProducts:", err);
-    res.status(500).json({ message: "Failed to fetch related products" });
+    console.error("Error getting related products:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 
 
 

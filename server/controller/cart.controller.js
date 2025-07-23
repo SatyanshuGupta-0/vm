@@ -6,7 +6,7 @@ const Product = require('../model/VMProduct.model');
 async function addToCartItemController(req, res) {
   try {
     const userId = req.user.id;
-    const { productId, variantId, quantity, selectedOptions } = req.body;
+    const { productId, variantId, sizeId, quantity, selectedOptions } = req.body;
 
     if (!productId || !quantity) {
       return res.status(400).json({
@@ -17,7 +17,7 @@ async function addToCartItemController(req, res) {
     }
 
     // Check if same product + variant combo is already in cart
-    const existingItem = await CartProductModel.findOne({ userId, productId, variantId });
+    const existingItem = await CartProductModel.findOne({ userId, productId, variantId, sizeId });
 
     if (existingItem) {
       return res.status(400).json({
@@ -31,7 +31,8 @@ async function addToCartItemController(req, res) {
       quantity,
       userId,
       productId,
-      variantId,       // save variantId
+      variantId,
+      sizeId,// save variantId
       selectedOptions, // optional: save selected options (color, size, etc)
     });
 

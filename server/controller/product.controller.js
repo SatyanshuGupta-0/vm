@@ -256,6 +256,43 @@ exports.getAllFeaturedProducts = async (req, res) => {
 };
 
 // Delete product
+// exports.deleteProduct = async (req, res) => {
+//   try {
+//     const product = await Product.findById(req.params.id);
+
+//     if (!product) {
+//       return res.status(404).json({ message: "Product not found" });
+//     }
+
+//     if (Array.isArray(product.images) && product.images.length > 0) {
+//       const deletePromises = product.images.map(async (img) => {
+//         if (img && typeof img === "object" && img.public_id) {
+//           try {
+//             await cloudinary.uploader.destroy(img.public_id);
+//             console.log(`Deleted image ${img.public_id} from Cloudinary`);
+//           } catch (err) {
+//             console.error(`Failed to delete image ${img.public_id}:`, err.message);
+//           }
+//         } else {
+//           console.log("Skipping image without public_id:", img);
+//         }
+//       });
+
+//       await Promise.all(deletePromises);
+//     } else {
+//       console.log("No images to delete for this product");
+//     }
+
+//     // Delete product document from DB
+//     await product.deleteOne();
+
+//     res.status(200).json({ message: "Product and images deleted successfully" });
+//   } catch (err) {
+//     console.error("Delete product error:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
 exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -264,36 +301,41 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (Array.isArray(product.images) && product.images.length > 0) {
-      const deletePromises = product.images.map(async (img) => {
-        if (img && typeof img === "object" && img.public_id) {
-          try {
-            await cloudinary.uploader.destroy(img.public_id);
-            console.log(`Deleted image ${img.public_id} from Cloudinary`);
-          } catch (err) {
-            console.error(`Failed to delete image ${img.public_id}:`, err.message);
-          }
-        } else {
-          console.log("Skipping image without public_id:", img);
+    const deleteImage = async (img) => {
+      if (img && typeof img === "object" && img.public_id) {
+        try {
+          await cloudinary.uploader.destroy(img.public_id);
+          console.log(`Deleted image ${img.public_id} from Cloudinary`);
+        } catch (err) {
+          console.error(`Failed to delete image ${img.public_id}:`, err.message);
         }
-      });
+      }
+    };
 
-      await Promise.all(deletePromises);
-    } else {
-      console.log("No images to delete for this product");
+    // Delete top-level product images
+    if (Array.isArray(product.images)) {
+      await Promise.all(product.images.map(deleteImage));
+    }
+
+    // Delete variant color images
+    if (Array.isArray(product.variantOptions)) {
+      for (const variant of product.variantOptions) {
+        const colorImages = variant?.color?.images || [];
+        if (Array.isArray(colorImages)) {
+          await Promise.all(colorImages.map(deleteImage));
+        }
+      }
     }
 
     // Delete product document from DB
     await product.deleteOne();
 
-    res.status(200).json({ message: "Product and images deleted successfully" });
+    res.status(200).json({ message: "Product and all images deleted successfully" });
   } catch (err) {
     console.error("Delete product error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 // Get single product
 exports.getProduct = async (req, res) => {

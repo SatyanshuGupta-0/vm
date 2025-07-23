@@ -170,9 +170,45 @@ async function deleteCartItemController(req, res) {
   }
 }
 
+async function clearCartController(req, res) {
+  try {
+    const userId = req.user.id;
+
+    if (!userId) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "Missing user ID",
+      });
+    }
+
+    // Delete all cart items for this user
+    await CartProductModel.deleteMany({ userId });
+
+    // Optionally clear the user's cart reference array if you're maintaining one
+    await UserModel.findByIdAndUpdate(userId, {
+      $set: { shopping_cart: [] },
+    });
+
+    return res.status(200).json({
+      error: false,
+      success: true,
+      message: "Cart cleared successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+
 module.exports = {
   addToCartItemController,
   getCartItemController,
   updateCartItemQtyController,
   deleteCartItemController,
+  clearCartController,
 };

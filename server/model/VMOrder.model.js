@@ -22,6 +22,10 @@ const orderSchema = new mongoose.Schema({
       type: mongoose.Schema.ObjectId,
       required: true, // or false if optional
     },
+      sizeId: {
+      type: mongoose.Schema.ObjectId,
+      required: true, // or false if optional
+    },
       quantity: {
         type: Number,
         default: 1,

@@ -5,12 +5,6 @@ const productSchema = new mongoose.Schema(
     name: { type: String, required: true },
     description: { type: String, required: true },
     brand: { type: String, default: "" },
-    images: [
-      {
-        url: { type: String, required: true },
-        public_id: { type: String, required: true },
-      },
-    ],
     modelName: String,
     modelLink: String,
     modelPublicId: String,
@@ -29,7 +23,7 @@ const productSchema = new mongoose.Schema(
       {
         _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
         color: {
-          name: { type: String, required: true },
+          name: { type: String,},
           price: { type: Number, default: 0 },
           images: [
             {

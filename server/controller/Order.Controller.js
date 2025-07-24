@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 
 cron.schedule("* * * * *", async () => {
   try {
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
+    const twentyFourHoursAgo = new Date(Date.now() - 10 * 60 * 60 * 1000); // 24 hours ago
 
     const result = await OrderModel.deleteMany({
       status: "cancelled",

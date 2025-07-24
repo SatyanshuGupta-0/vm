@@ -65,7 +65,7 @@ const googleLoginController = async (req, res) => {
       secure: true,
       sameSite: "None",
       path: "/",
-      maxAge: 1000 * 60 * 15,
+      maxAge: 1000 * 60 * 10,
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -314,10 +314,10 @@ const loginUserController = async (req, res) => {
       secure: true,
       sameSite: "None",
       path: "/",
-      maxAge: 1000 * 60 * 15, // 15 minutes for accessToken
+      maxAge: 1000 * 60 * 10, // 15 minutes for accessToken
     };
 
-    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 1 });
+    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 10 });
     res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 }); // 7 days
 
     return res.json({

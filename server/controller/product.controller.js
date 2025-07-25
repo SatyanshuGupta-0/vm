@@ -311,80 +311,134 @@ exports.getAllFeaturedProducts = async (req, res) => {
 //   }
 // };
 
-exports.deleteProduct = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
+// exports.deleteProduct = async (req, res) => {
+//   try {
+//     const product = await Product.findById(req.params.id);
 
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+//     if (!product) {
+//       return res.status(404).json({ message: "Product not found" });
+//     }
 
-    const deleteImage = async (img) => {
-      if (img && typeof img === "object" && img.public_id) {
-        try {
-          await cloudinary.uploader.destroy(img.public_id);
-          console.log(`Deleted image from Cloudinary`);
-        } catch (err) {
-          console.error(`Failed to delete image` , err.message);
-        }
-      }
-    };
+//     const deleteImage = async (img) => {
+//       if (img && typeof img === "object" && img.public_id) {
+//         try {
+//           await cloudinary.uploader.destroy(img.public_id);
+//           console.log(`Deleted image from Cloudinary`);
+//         } catch (err) {
+//           console.error(`Failed to delete image` , err.message);
+//         }
+//       }
+//     };
 
-    // Delete top-level product images
-    if (Array.isArray(product.images)) {
-      await Promise.all(product.images.map(deleteImage));
-    }
+//     // Delete top-level product images
+//     if (Array.isArray(product.images)) {
+//       await Promise.all(product.images.map(deleteImage));
+//     }
 
-    // Delete variant color images
-    if (Array.isArray(product.variantOptions)) {
-      for (const variant of product.variantOptions) {
-        const colorImages = variant?.color?.images || [];
-        if (Array.isArray(colorImages)) {
-          await Promise.all(colorImages.map(deleteImage));
-        }
-      }
-    }
+//     // Delete variant color images
+//     if (Array.isArray(product.variantOptions)) {
+//       for (const variant of product.variantOptions) {
+//         const colorImages = variant?.color?.images || [];
+//         if (Array.isArray(colorImages)) {
+//           await Promise.all(colorImages.map(deleteImage));
+//         }
+//       }
+//     }
 
-    // Delete product document from DB
-    await product.deleteOne();
+//     // Delete product document from DB
+//     await product.deleteOne();
 
-    res.status(200).json({ message: "Product and all images deleted successfully" });
-  } catch (err) {
-    console.error("Delete product error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+//     res.status(200).json({ message: "Product and all images deleted successfully" });
+//   } catch (err) {
+//     console.error("Delete product error:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+// exports.deleteProductS = async (req, res) => {
+//   try {
+//     const product = await Product.findById(req.params.id);
+
+//     if (!product) {
+//       return res.status(404).json({ message: "Product not found" });
+//     }
+
+//     // Check if the logged-in admin is the one who created the product
+//     if (product.createdBy.toString() !== req.admin.id) {
+//       return res.status(403).json({ message: "Unauthorized: You can only delete products you created" });
+//     }
+
+//     const deleteImage = async (img) => {
+//       if (img && typeof img === "object" && img.public_id) {
+//         try {
+//           await cloudinary.uploader.destroy(img.public_id);
+//           console.log(`Deleted image from Cloudinary`);
+//         } catch (err) {
+//           console.error(`Failed to delete image`, err.message);
+//         }
+//       }
+//     };
+
+//     // Delete top-level product images
+//     if (Array.isArray(product.images)) {
+//       await Promise.all(product.images.map(deleteImage));
+//     }
+
+//     // Delete variant color images
+//     if (Array.isArray(product.variantOptions)) {
+//       for (const variant of product.variantOptions) {
+//         const colorImages = variant?.color?.images || [];
+//         if (Array.isArray(colorImages)) {
+//           await Promise.all(colorImages.map(deleteImage));
+//         }
+//       }
+//     }
+
+//     // Delete the product document
+//     await product.deleteOne();
+
+//     res.status(200).json({ message: "Product and all images deleted successfully" });
+//   } catch (err) {
+//     console.error("Delete product error:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
 
 exports.deleteProductS = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
+    const adminId = req.admin?.id;
+    const adminRole = req.admin?.role;
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Check if the logged-in admin is the one who created the product
-    if (product.createdBy.toString() !== req.admin.id) {
-      return res.status(403).json({ message: "Unauthorized: You can only delete products you created" });
+    const isOwner = product.createdBy?.toString() === adminId;
+    const hasAccessRole = ["admin", "superadmin"].includes(adminRole);
+
+    if (!isOwner && !hasAccessRole) {
+      return res.status(403).json({
+        message: "Unauthorized: Only the creator or an admin/superadmin can delete this product",
+      });
     }
 
     const deleteImage = async (img) => {
       if (img && typeof img === "object" && img.public_id) {
         try {
           await cloudinary.uploader.destroy(img.public_id);
-          console.log(`Deleted image from Cloudinary`);
         } catch (err) {
-          console.error(`Failed to delete image`, err.message);
+          console.error("Image deletion error:", err.message);
         }
       }
     };
 
-    // Delete top-level product images
+    // Delete product images
     if (Array.isArray(product.images)) {
       await Promise.all(product.images.map(deleteImage));
     }
 
-    // Delete variant color images
+    // Delete variant images
     if (Array.isArray(product.variantOptions)) {
       for (const variant of product.variantOptions) {
         const colorImages = variant?.color?.images || [];
@@ -394,15 +448,15 @@ exports.deleteProductS = async (req, res) => {
       }
     }
 
-    // Delete the product document
     await product.deleteOne();
 
-    res.status(200).json({ message: "Product and all images deleted successfully" });
+    return res.status(200).json({ message: "Product and images deleted successfully" });
   } catch (err) {
     console.error("Delete product error:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // Get single product
 exports.getProduct = async (req, res) => {

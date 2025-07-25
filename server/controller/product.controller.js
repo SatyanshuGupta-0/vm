@@ -24,14 +24,19 @@ exports.uploadImages = async (req, res) => {
 // Create product
 exports.createProduct = async (req, res) => {
   try {
-    const product = new Product(req.body);
+    const product = new Product({
+      ...req.body,
+      createdBy: req.user.id, // ✅ Add admin ID from auth
+    });
+
     await product.save();
     res.status(201).json(product);
   } catch (err) {
-    console.error("Create product error:", err); // 🔍 log error
+    console.error("Create product error:", err);
     res.status(400).json({ error: err.message });
   }
 };
+
 
 
 // Get all products

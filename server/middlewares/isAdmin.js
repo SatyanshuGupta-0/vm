@@ -9,7 +9,7 @@ const isAdmin = (...allowedRoles) => {
 
       // ✅ Check if token exists and is a Bearer token
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ message: "No token provided" });
+        return res.status(401).json({ message: "No token provided lol" });
       }
 
       const token = authHeader.split(" ")[1];

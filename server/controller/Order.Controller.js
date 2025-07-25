@@ -32,7 +32,7 @@ const placeOrderController = async (req, res) => {
       subTotalAmt,
       totalAmt,
     } = req.body;
-    console.log(req.body)
+   
 
     if (!products || !Array.isArray(products) || products.length === 0 || !delivery_address) {
       return res.status(400).json({
@@ -199,29 +199,7 @@ const getAllOrdersController = async (req, res) => {
     });
   }
 };
-// const getAllOrdersController = async (req, res) => {
-//   try {
-//     const orders = await OrderModel.find()
-//       .sort({ createdAt: -1 })
-//       // .populate("userId", "name email") // Populate user details (optional)
-//       .populate("products.productId")   // Populate product details
-//       .populate("delivery_address")     // Populate delivery address
-//       .lean();
 
-//     return res.status(200).json({
-//       success: true,
-//       error: false,
-//       message: "All orders fetched successfully",
-//       data: orders,
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       success: false,
-//       error: true,
-//       message: error.message || "Failed to fetch orders",
-//     });
-//   }
-// };
 
 module.exports = {
   placeOrderController,

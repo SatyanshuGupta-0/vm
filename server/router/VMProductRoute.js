@@ -33,7 +33,7 @@ const {
 
 
 // 🔒 Admin-only routes
-router.post('/uploadImages',  isAdmin("superadmin"), upload.array('images'), uploadImages);
+router.post('/uploadImages',  isAdmin("superadmin","shopkeeper"), upload.array('images'), uploadImages);
 router.post('/create',isAdmin("superadmin" , "shopkeeper"), createProduct);
 router.delete('/:id',  isAdmin("superadmin"), deleteProduct);
 router.post('/deleteImage',  isAdmin("superadmin"), removeImageFromCloudinary);

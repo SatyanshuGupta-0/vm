@@ -18,6 +18,12 @@ const productSchema = new mongoose.Schema(
     thirdsubCatName: String,
     rating: { type: Number, default: 0 },
     isFeatured: { type: Boolean, default: false },
+    createdBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'user', // or 'Admin', depending on your schema
+  required: true
+}
+
 
     variantOptions: [
       {

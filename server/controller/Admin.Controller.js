@@ -108,3 +108,56 @@ exports.getAllAdmins = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const admin = await Admin.findOne({ email });
+    if (!admin) return res.status(404).json({ message: "Email not registered" });
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+    admin.resetPasswordToken = hashedToken;
+    admin.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await admin.save({ validateBeforeSave: false });
+
+    // Normally you'd send email; for now return it in response (frontend can use it)
+    res.status(200).json({
+      message: "Reset token generated",
+      resetToken, // NOTE: For testing or API client usage only
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Error generating reset token" });
+  }
+};
+
+// 🔄 Reset Password
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const admin = await Admin.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!admin) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    admin.password = newPassword;
+    admin.resetPasswordToken = undefined;
+    admin.resetPasswordExpire = undefined;
+
+    await admin.save();
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    res.status(500).json({ message: "Password reset failed" });
+  }
+};
+

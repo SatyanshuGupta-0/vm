@@ -44,6 +44,19 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
+exports.getAllProduct = async (req, res) => {
+  try {
+    const adminId = req.user.id; // Automatically set by auth middleware
+
+    const products = await Product.find({ createdBy: adminId }).sort({ createdAt: -1 });
+
+    res.status(200).json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 // controllers/productController.js\
 
 exports.searchProducts = async (req, res) => {

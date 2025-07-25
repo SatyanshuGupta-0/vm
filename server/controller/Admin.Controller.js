@@ -1,3 +1,4 @@
+
 const Admin = require("../model/VMAdmin.model");
 const jwt = require("jsonwebtoken");
 const generateAccessToken = require("../utils/generatedAccessToken");
@@ -13,23 +14,23 @@ const setRefreshTokenCookie = (res, token) => {
   });
 };
 
-// 🔐 Register
+// 🔐 Register Admin
 exports.registerAdmin = async (req, res) => {
   try {
-    const {  name, email, password, role } = req.body;
+    const { name, email, password, role } = req.body;
 
     const exist = await Admin.findOne({ email });
     if (exist)
       return res.status(400).json({ message: "Admin already exists" });
 
-    const newAdmin = await Admin.create({  name, email, password, role });
+    const newAdmin = await Admin.create({ name, email, password, role });
     res.status(201).json({ message: "Admin registered", admin: newAdmin });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// 🔐 Login
+// 🔐 Login Admin
 exports.loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -76,11 +77,9 @@ exports.refreshToken = async (req, res) => {
   }
 };
 
-// 🚪 Logout
-exports.logoutAdmin = async(req, res) => {
+// 🚪 Logout Admin
+exports.logoutAdmin = async (req, res) => {
   try {
-    const userId = req.user.id; // Assuming you decode it earlier
-    await UserModel.findByIdAndUpdate(userId, { refresh_token: "" });
     res.clearCookie("refreshToken");
     res.json({ message: "Logged out" });
   } catch (error) {
@@ -88,17 +87,21 @@ exports.logoutAdmin = async(req, res) => {
   }
 };
 
-
 // 👤 Get Admin Profile
 exports.getAdminProfile = async (req, res) => {
-  const admin = await Admin.findById(req.admin.id).select("-password");
-  if (!admin) return res.status(404).json({ message: "Admin not found" });
-  res.json(admin);
+  try {
+    const admin = await Admin.findById(req.admin.id).select("-password");
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
+    res.json(admin);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get profile" });
+  }
 };
 
+// 📋 Get All Admins
 exports.getAllAdmins = async (req, res) => {
   try {
-    const admins = await Admin.find().select("-password -refresh_token");
+    const admins = await Admin.find().select("-password");
     res.status(200).json(admins);
   } catch (error) {
     console.error("Error fetching admins:", error.message);

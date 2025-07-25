@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema(
   type: mongoose.Schema.Types.ObjectId,
   ref: 'user', // or 'Admin', depending on your schema
   required: true
-}
+},
 
 
     variantOptions: [

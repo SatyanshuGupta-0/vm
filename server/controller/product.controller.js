@@ -485,15 +485,44 @@ exports.removeImageFromCloudinary = async (req, res) => {
 
 
 // Update product
+// exports.updateProduct = async (req, res) => {
+//   try {
+//     const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//     if (!updated) return res.status(404).json({ error: "Product not found" });
+//     res.status(200).json(updated);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 exports.updateProduct = async (req, res) => {
   try {
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ error: "Product not found" });
+    const productId = req.params.id;
+    const adminId = req.admin?._id; // From auth middleware
+    const role = req.admin?.role;
+
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    // 🛡️ Optional Role Check: Only creator or higher roles can update
+    if (
+      product.createdBy.toString() !== adminId.toString() &&
+      !["admin", "superadmin", "manager"].includes(role)
+    ) {
+      return res.status(403).json({ error: "Unauthorized to update this product" });
+    }
+
+    const updated = await Product.findByIdAndUpdate(productId, req.body, {
+      new: true,
+      runValidators: true, // Ensures schema validation runs
+    });
+
     res.status(200).json(updated);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Update error:", err.message);
+    res.status(500).json({ error: "Server error while updating product" });
   }
 };
+
 
 // controllers/productController.js
 exports.getRelatedProducts = async (req, res) => {

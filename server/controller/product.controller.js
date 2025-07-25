@@ -319,6 +319,11 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // Check if the logged-in admin is the one who created the product
+    if (product.createdBy.toString() !== req.admin.id) {
+      return res.status(403).json({ message: "Unauthorized: You can only delete products you created" });
+    }
+
     const deleteImage = async (img) => {
       if (img && typeof img === "object" && img.public_id) {
         try {
@@ -345,7 +350,7 @@ exports.deleteProduct = async (req, res) => {
       }
     }
 
-    // Delete product document from DB
+    // Delete the product document
     await product.deleteOne();
 
     res.status(200).json({ message: "Product and all images deleted successfully" });

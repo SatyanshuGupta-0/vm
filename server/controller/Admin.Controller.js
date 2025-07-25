@@ -1,6 +1,6 @@
 const Admin = require("../model/VMAdmin.model");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
 const generateAccessToken = require("../utils/generatedAccessToken");

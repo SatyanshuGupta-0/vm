@@ -372,9 +372,9 @@ exports.deleteProductS = async (req, res) => {
       if (img && typeof img === "object" && img.public_id) {
         try {
           await cloudinary.uploader.destroy(img.public_id);
-          console.log(`Deleted image ${img.public_id} from Cloudinary`);
+          console.log(Deleted image ${img.public_id} from Cloudinary);
         } catch (err) {
-          console.error(`Failed to delete image ${img.public_id}:`, err.message);
+          console.error(Failed to delete image ${img.public_id}:, err.message);
         }
       }
     };

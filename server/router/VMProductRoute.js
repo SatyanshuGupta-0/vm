@@ -28,6 +28,7 @@ const {
   deleteModelController,
   getPaginatedProducts, 
   deleteVariantFromProduct,
+  getAllProduct,
 } = require("../controller/product.controller");
 
 
@@ -39,6 +40,7 @@ router.post('/deleteImage',  isAdmin("superadmin"), removeImageFromCloudinary);
 router.put('/updateProduct/:id',  isAdmin("superadmin"), updateProduct);
 router.post('/delete-model',  isAdmin("superadmin"), deleteModelController);
 router.delete('/:productId/variant/:variantId',  isAdmin("superadmin"), deleteVariantFromProduct);
+router.get("/getProducts", isAdmin("shopkeeper"), getAllProduct);
 
 // 🧑‍💼 Authenticated or public routes
 router.get('/search', searchProducts); // public

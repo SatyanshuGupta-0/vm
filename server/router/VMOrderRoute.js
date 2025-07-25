@@ -21,6 +21,6 @@ router.put("/cancel/:id", auth, cancelOrderController);
 router.get("/user-orders", auth, viewOrderController);
 
 // Admin: View all orders
-router.get("/all-orders",isAdmin("superadmin","admin"),   getAllOrdersController);
+router.get("/all-orders",isAdmin("superadmin","admin","shopkeeper","manager"),   getAllOrdersController);
 
 module.exports = router;

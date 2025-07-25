@@ -39,7 +39,7 @@ router.post('/create',isAdmin("superadmin","shopkeeper"), createProduct);
 // router.delete('/:id',  isAdmin("superadmin"), deleteProduct);
 router.delete('/deletes/:id',  isAdmin("shopkeeper"), deleteProductS);
 router.post('/deleteImage',  isAdmin("superadmin","shopkeeper"), removeImageFromCloudinary);
-router.put('/updateProduct/:id',  isAdmin("superadmin"), updateProduct);
+router.put('/updateProduct/:id',  isAdmin("superadmin", "shopkeeper"), updateProduct);
 router.post('/delete-model',  isAdmin("superadmin"), deleteModelController);
 router.delete('/:productId/variant/:variantId',  isAdmin("superadmin","shopkeeper"), deleteVariantFromProduct);
 router.get("/getProducts", isAdmin("shopkeeper"), getAllProduct);

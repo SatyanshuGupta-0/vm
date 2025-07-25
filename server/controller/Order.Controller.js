@@ -156,7 +156,7 @@ const viewOrderController = async (req, res) => {
 // Get All Orders - Admin Purpose
 const getAllOrdersController = async (req, res) => {
   try {
-    const { id: adminId, role } = req.user;
+    const { id: adminId, role } = req.admin;
 
     let orders;
 

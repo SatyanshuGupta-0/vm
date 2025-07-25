@@ -66,7 +66,7 @@ exports.refreshToken = async (req, res) => {
     const token = req.cookies.refreshToken;
     if (!token) return res.status(401).json({ message: "No refresh token" });
 
-    const decoded = jwt.verify(token, process.env.SECRET_KEY_ACCESS_TOKEN,);
+    const decoded = jwt.verify(token, process.env.SECRET_KEY_REFRESH_TOKEN,);
     const admin = await Admin.findById(decoded.id);
     if (!admin) return res.status(401).json({ message: "Admin not found" });
 

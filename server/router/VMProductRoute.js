@@ -42,7 +42,7 @@ router.post('/deleteImage',  isAdmin("superadmin","shopkeeper"), removeImageFrom
 router.put('/updateProduct/:id',  isAdmin("superadmin", "shopkeeper"), updateProduct);
 router.post('/delete-model',  isAdmin("superadmin"), deleteModelController);
 router.delete('/:productId/variant/:variantId',  isAdmin("superadmin","shopkeeper"), deleteVariantFromProduct);
-router.get("/getProducts", isAdmin("shopkeeper"), getAllProduct);
+router.get("/getProducts", isAdmin("superadmin","shopkeeper"), getAllProduct);
 
 // 🧑‍💼 Authenticated or public routes
 router.get('/search', searchProducts); // public

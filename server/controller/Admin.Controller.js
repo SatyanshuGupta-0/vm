@@ -61,22 +61,51 @@ exports.loginAdmin = async (req, res) => {
 };
 
 // 🔄 Refresh Token
+// exports.refreshToken = async (req, res) => {
+//   try {
+//     const token = req.cookies.refreshToken;
+//     if (!token) return res.status(401).json({ message: "No refresh token" });
+
+//     const decoded = jwt.verify(token, process.env.SECRET_KEY_REFRESH_TOKEN,);
+//     const admin = await Admin.findById(decoded.id);
+//     if (!admin) return res.status(401).json({ message: "Admin not found" });
+
+//     const newAccessToken = generateAccessToken(admin._id);
+//     res.json({ accessToken: newAccessToken });
+//   } catch (err) {
+//     res.status(403).json({ message: "Invalid or expired refresh token" });
+//   }
+// };
 exports.refreshToken = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
+
   try {
-    const token = req.cookies.refreshToken;
-    if (!token) return res.status(401).json({ message: "No refresh token" });
-
-    const decoded = jwt.verify(token, process.env.SECRET_KEY_REFRESH_TOKEN,);
+    const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN);
     const admin = await Admin.findById(decoded.id);
-    if (!admin) return res.status(401).json({ message: "Admin not found" });
 
-    const newAccessToken = generateAccessToken(admin._id);
-    res.json({ accessToken: newAccessToken });
+    if (!admin || admin.refresh_token !== refreshToken) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const newAccessToken = await generatedAccessToken(admin._id);
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
+      path: "/", // ✅ Make sure this is set
+    });
+
+    return res.json({ success: true, accessToken: newAccessToken });
+ // ✅ Don't send token to frontend
   } catch (err) {
-    res.status(403).json({ message: "Invalid or expired refresh token" });
+    return res.status(403).json({ message: "Invalid or expired refresh token" });
   }
 };
-
 // 🚪 Logout Admin
 exports.logoutAdmin = async (req, res) => {
   try {

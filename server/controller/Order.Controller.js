@@ -32,7 +32,7 @@ const placeOrderController = async (req, res) => {
       subTotalAmt,
       totalAmt,
     } = req.body;
-    
+    console.log(req.body)
 
     if (!products || !Array.isArray(products) || products.length === 0 || !delivery_address) {
       return res.status(400).json({

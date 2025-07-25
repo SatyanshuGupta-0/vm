@@ -32,6 +32,7 @@ const placeOrderController = async (req, res) => {
       subTotalAmt,
       totalAmt,
     } = req.body;
+    
 
     if (!products || !Array.isArray(products) || products.length === 0 || !delivery_address) {
       return res.status(400).json({
@@ -153,7 +154,7 @@ const viewOrderController = async (req, res) => {
   }
 };
 
-Get All Orders - Admin Purpose
+// Get All Orders - Admin Purpose
 const getAllOrdersController = async (req, res) => {
   try {
     const { id: adminId, role } = req.admin;

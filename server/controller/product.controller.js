@@ -26,7 +26,7 @@ exports.createProduct = async (req, res) => {
   try {
     const product = new Product({
       ...req.body,
-      createdBy: req.user.id, // ✅ Add admin ID from auth
+      createdBy: req.admin.id, // ✅ Add admin ID from auth
     });
 
     await product.save();
@@ -51,7 +51,7 @@ exports.getAllProducts = async (req, res) => {
 
 exports.getAllProduct = async (req, res) => {
   try {
-    const adminId = req.user.id; // Automatically set by auth middleware
+    const adminId = req.admin.id; // Automatically set by auth middleware
 
     const products = await Product.find({ createdBy: adminId }).sort({ createdAt: -1 });
 

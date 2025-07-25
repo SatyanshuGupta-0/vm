@@ -20,7 +20,7 @@ const productSchema = new mongoose.Schema(
     isFeatured: { type: Boolean, default: false },
     createdBy: {
   type: mongoose.Schema.Types.ObjectId,
-  ref: 'user', // or 'Admin', depending on your schema
+  ref: 'VMAdmin', // or 'Admin', depending on your schema
   required: true
 },
 

@@ -6,7 +6,9 @@ const {
   refreshToken,
   logoutAdmin,
   getAdminProfile,
-  getAllAdmins
+  getAllAdmins,
+  forgotPassword,
+  resetPassword,
 } = require("../controller/Admin.Controller");
 const isAdmin = require("../middlewares/isAdmin");
 
@@ -16,5 +18,7 @@ router.get("/refresh-token", refreshToken);
 router.get("/logout", logoutAdmin);
 router.get("/profile", isAdmin("superadmin"), getAdminProfile);
 router.get("/all-admins", isAdmin("superadmin"), getAllAdmins);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 module.exports = router;

@@ -31,32 +31,100 @@ exports.registerAdmin = async (req, res) => {
 };
 
 // 🔐 Login Admin
-exports.loginAdmin = async (req, res) => {
+// exports.loginAdmin = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const admin = await Admin.findOne({ email });
+
+//     if (!admin || !(await admin.matchPassword(password))) {
+//       return res.status(401).json({ message: "Invalid credentials" });
+//     }
+
+//     const accessToken = generateAccessToken(admin._id);
+//     const refreshToken = generateRefreshToken(admin._id);
+
+//     setRefreshTokenCookie(res, refreshToken);
+
+//     res.status(200).json({
+//       message: "Login successful",
+//       accessToken,
+//       admin: {
+//         id: admin._id,
+//         email: admin.email,
+//         role: admin.role,
+//         name: admin.name,
+//       },
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+const loginUserController = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const admin = await Admin.findOne({ email });
 
-    if (!admin || !(await admin.matchPassword(password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    const user = await Admin.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "User not registered",
+        error: true,
+        success: false,
+      });
     }
 
-    const accessToken = generateAccessToken(admin._id);
-    const refreshToken = generateRefreshToken(admin._id);
+    if (user.status !== "Active") {
+      return res.status(400).json({
+        message: "Contact Admin for account status",
+        error: true,
+        success: false,
+      });
+    }
 
-    setRefreshTokenCookie(res, refreshToken);
+    if (!user.verify_email) {
+      return res.status(400).json({
+        message: "Your Email is not verified yet. Please verify your email first",
+        error: true,
+        success: false,
+      });
+    }
 
-    res.status(200).json({
+    const checkPassword = await bcrypt.compare(password, user.password);
+    if (!checkPassword) {
+      return res.status(400).json({
+        message: "Invalid password",
+        error: true,
+        success: false,
+      });
+    }
+
+    const accessToken = await generatedAccessToken(user._id);
+    const refreshToken = await generatedRefreshToken(user._id);
+
+    await Admin.findByIdAndUpdate(user._id, { last_login_date: new Date() });
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+      maxAge: 1000 * 60 * 10, // 15 minutes for accessToken
+    };
+
+    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 10 });
+    res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 }); // 7 days
+
+    return res.json({
       message: "Login successful",
-      accessToken,
-      admin: {
-        id: admin._id,
-        email: admin.email,
-        role: admin.role,
-        name: admin.name,
-      },
+      error: false,
+      success: true,
     });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Internal Server Error",
+      error: true,
+      success: false,
+    });
   }
 };
 

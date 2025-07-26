@@ -24,7 +24,7 @@ const setAccessTokenCookie = (res, token) => {
     secure: true,
     sameSite: "None",
     path: "/",
-   maxAge: 1 * 60 * 1000,
+   maxAge: 10 * 60 * 1000,
   });
 };
 

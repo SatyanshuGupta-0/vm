@@ -77,6 +77,7 @@ exports.loginAdmin = async (req, res) => {
     res.json({
       message: "Login successful",
       success: true,
+      adminToken: adminToken
       admin: {
         id: user._id,
         name: user.name,

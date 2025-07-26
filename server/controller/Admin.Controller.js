@@ -98,6 +98,7 @@ exports.refreshToken = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY_REFRESH_TOKEN);
+    console.log(decoded)
     const admin = await Admin.findById(decoded.id);
     if (!admin || admin.refresh_token !== token) {
       return res.status(403).json({ message: "Invalid refresh token" });

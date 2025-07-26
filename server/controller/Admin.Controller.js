@@ -55,12 +55,13 @@ exports.registerAdmin = async (req, res) => {
 // 🔐 Login Admin
 exports.loginAdmin = async (req, res) => {
   try {
+    console.log("Incoming Body:", req.body);
     const { email, password } = req.body;
-    const user = await Admin.findOne({ email });
 
+    const user = await Admin.findOne({ email });
     if (!user) return res.status(400).json({ message: "User not registered" });
-    if (user.status !== "Active") return res.status(400).json({ message: "Contact Admin for account status" });
-    if (!user.verify_email) return res.status(400).json({ message: "Please verify your email first" });
+    if (user.status !== "Active") return res.status(400).json({ message: "Account not active" });
+    if (!user.verify_email) return res.status(400).json({ message: "Please verify your email" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
@@ -68,7 +69,6 @@ exports.loginAdmin = async (req, res) => {
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
-    // Save refresh token to DB
     user.refresh_token = refreshToken;
     user.last_login_date = new Date();
     await user.save();

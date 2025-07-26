@@ -91,23 +91,32 @@ exports.loginAdmin = async (req, res) => {
 
 
 // 🔄 Refresh Token
+// controller/Admin.Controller.js
+
 exports.refreshToken = async (req, res) => {
   const token = req.cookies.refreshToken;
-  if (!token) return res.status(401).json({ message: "No refresh token provided" });
+
+  if (!token) {
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY_REFRESH_TOKEN);
     const admin = await Admin.findById(decoded.id);
+
     if (!admin || admin.refresh_token !== token) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     const newAccessToken = generateAccessToken(admin._id);
+
+    // 🔒 Set access token as httpOnly cookie
     setAccessTokenCookie(res, newAccessToken);
 
-    res.json({ success: true, accessToken: newAccessToken });
+    return res.json({ success: true, accessToken: newAccessToken });
   } catch (err) {
-    res.status(403).json({ message: "Refresh token expired or invalid" });
+    console.error("Refresh error:", err);
+    return res.status(403).json({ message: "Refresh token expired or invalid" });
   }
 };
 

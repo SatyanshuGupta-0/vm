@@ -1,8 +1,131 @@
+// const Admin = require("../model/VMAdmin.model");
+// const jwt = require("jsonwebtoken");
+// const bcrypt = require("bcrypt");
+// const crypto = require("crypto");
+
+// const generateAccessToken = require("../utils/generatedAccessToken");
+// const generateRefreshToken = require("../utils/generatedRefreshToken");
+
+// // 🍪 Set Refresh Token Cookie
+// const setRefreshTokenCookie = (res, token) => {
+//   res.cookie("refreshToken", token, {
+//     httpOnly: true,
+//     secure: true,
+//     sameSite: "None",
+//     path: "/",
+//     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+//   });
+// };
+
+// // 🍪 Set Access Token Cookie
+// const setAccessTokenCookie = (res, token) => {
+//   res.cookie("adminToken", token, {
+//     httpOnly: true,
+//     secure: true,
+//     sameSite: "None",
+//     path: "/",
+//    maxAge: 1 * 60 * 1000,
+//   });
+// };
+
+// // 🧾 Register Admin
+// exports.registerAdmin = async (req, res) => {
+//   try {
+//     const { name, email, password, role } = req.body;
+
+//     const existing = await Admin.findOne({ email });
+//     if (existing) return res.status(400).json({ message: "Admin already exists" });
+
+//     const newAdmin = await Admin.create({ name, email, password, role });
+
+//     res.status(201).json({
+//       message: "Admin registered successfully",
+//       admin: {
+//         id: newAdmin._id,
+//         email: newAdmin.email,
+//         role: newAdmin.role,
+//         name: newAdmin.name,
+//       },
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+// // 🔐 Login Admin
+// exports.loginAdmin = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await Admin.findOne({ email });
+//     if (!user) return res.status(400).json({ message: "User not registered" });
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+
+//     const adminToken = generateAccessToken(user._id);
+//     const refreshToken = await generateRefreshToken(user._id); // ✅ Fix here
+
+//     user.refresh_token = refreshToken;
+//     user.last_login_date = new Date();
+//     await user.save(); // ✅ Now refresh_token is a string, not a Promise
+
+//     setAccessTokenCookie(res, adminToken);
+//     setRefreshTokenCookie(res, refreshToken);
+
+//     res.json({
+//       message: "Login successful",
+//       success: true,
+//       adminToken: adminToken,
+//       admin: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         role: user.role,
+//       },
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: "Login failed", error: err.message });
+//   }
+// };
+
+
+
+
+
+// exports.refreshToken = async (req, res) => {
+//   const refreshToken = req.cookies.refreshToken;
+
+//   if (!refreshToken) {
+//     return res.status(401).json({ message: "No refresh token provided" });
+//   }
+
+//   try {
+//     const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN);
+//     const admin = await Admin.findById(decoded.id);
+
+//     if (!admin || admin.refresh_token !== refreshToken) {
+//       return res.status(403).json({ message: "Invalid refresh token" });
+//     }
+
+//     const newAccessToken = await generateAccessToken(admin._id);
+
+//     res.cookie("accessToken", newAccessToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "None",
+//       path: "/", // ✅ important
+//     });
+
+//     return res.json({ success: true, accessToken: newAccessToken });
+//   } catch (err) {
+//     return res.status(403).json({ message: "Invalid or expired refresh token" });
+//   }
+// };
+
 const Admin = require("../model/VMAdmin.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
-
 const generateAccessToken = require("../utils/generatedAccessToken");
 const generateRefreshToken = require("../utils/generatedRefreshToken");
 
@@ -24,7 +147,7 @@ const setAccessTokenCookie = (res, token) => {
     secure: true,
     sameSite: "None",
     path: "/",
-   maxAge: 1 * 60 * 1000,
+    maxAge: 1 * 60 * 1000, // 1 minute
   });
 };
 
@@ -34,21 +157,22 @@ exports.registerAdmin = async (req, res) => {
     const { name, email, password, role } = req.body;
 
     const existing = await Admin.findOne({ email });
-    if (existing) return res.status(400).json({ message: "Admin already exists" });
+    if (existing)
+      return res.status(400).json({ message: "Admin already exists" });
 
     const newAdmin = await Admin.create({ name, email, password, role });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Admin registered successfully",
       admin: {
         id: newAdmin._id,
         email: newAdmin.email,
-        role: newAdmin.role,
         name: newAdmin.name,
+        role: newAdmin.role,
       },
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -58,25 +182,27 @@ exports.loginAdmin = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await Admin.findOne({ email });
-    if (!user) return res.status(400).json({ message: "User not registered" });
+    if (!user)
+      return res.status(400).json({ message: "User not registered" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid password" });
 
-    const adminToken = generateAccessToken(user._id);
-    const refreshToken = await generateRefreshToken(user._id); // ✅ Fix here
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id);
 
     user.refresh_token = refreshToken;
     user.last_login_date = new Date();
-    await user.save(); // ✅ Now refresh_token is a string, not a Promise
+    await user.save();
 
-    setAccessTokenCookie(res, adminToken);
+    setAccessTokenCookie(res, accessToken);
     setRefreshTokenCookie(res, refreshToken);
 
-    res.json({
+    return res.json({
       message: "Login successful",
       success: true,
-      adminToken: adminToken,
+      adminToken: accessToken,
       admin: {
         id: user._id,
         name: user.name,
@@ -85,14 +211,11 @@ exports.loginAdmin = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ message: "Login failed", error: err.message });
+    return res.status(500).json({ message: "Login failed", error: err.message });
   }
 };
 
-
-
-
-
+// 🔁 Refresh Token Handler
 exports.refreshToken = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
@@ -108,13 +231,14 @@ exports.refreshToken = async (req, res) => {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
-    const newAccessToken = await generateAccessToken(admin._id);
+    const newAccessToken = generateAccessToken(admin._id);
 
-    res.cookie("accessToken", newAccessToken, {
+    res.cookie("adminToken", newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "None",
-      path: "/", // ✅ important
+      path: "/",
+      maxAge: 1 * 60 * 1000,
     });
 
     return res.json({ success: true, accessToken: newAccessToken });
@@ -122,7 +246,6 @@ exports.refreshToken = async (req, res) => {
     return res.status(403).json({ message: "Invalid or expired refresh token" });
   }
 };
-
 
 // 🚪 Logout Admin
 exports.logoutAdmin = async (req, res) => {

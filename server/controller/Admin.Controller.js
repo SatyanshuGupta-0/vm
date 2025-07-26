@@ -60,18 +60,16 @@ exports.loginAdmin = async (req, res) => {
 
     const user = await Admin.findOne({ email });
     if (!user) return res.status(400).json({ message: "User not registered" });
-   
-
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
     const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id); // ✅ Fix here
 
     user.refresh_token = refreshToken;
     user.last_login_date = new Date();
-    await user.save();
+    await user.save(); // ✅ Now refresh_token is a string, not a Promise
 
     setAccessTokenCookie(res, accessToken);
     setRefreshTokenCookie(res, refreshToken);
@@ -90,6 +88,7 @@ exports.loginAdmin = async (req, res) => {
     res.status(500).json({ message: "Login failed", error: err.message });
   }
 };
+
 
 // 🔄 Refresh Token
 exports.refreshToken = async (req, res) => {

@@ -90,38 +90,35 @@ exports.loginAdmin = async (req, res) => {
 };
 
 
-
-
-
 exports.refreshToken = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
+  console.log("🌐 Cookies:", req.cookies); // 🔍 Check if refreshToken is present
 
-  if (!refreshToken) {
-    return res.status(401).json({ message: "No refresh token provided" });
-  }
+  const token = req.cookies.refreshToken;
+  if (!token) return res.status(401).json({ message: "No refresh token provided" });
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN);
+    const decoded = jwt.verify(token, process.env.SECRET_KEY_REFRESH_TOKEN);
     const admin = await Admin.findById(decoded.id);
-
-    if (!admin || admin.refresh_token !== refreshToken) {
+    if (!admin || admin.refresh_token !== token) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
-    const newAccessToken = await generateAccessToken(admin._id);
+    const newAccessToken = generateAccessToken(admin._id);
 
-    res.cookie("accessToken", newAccessToken, {
+    res.cookie("adminToken", newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "None",
-      path: "/", // ✅ important
+      path: "/",
+      maxAge: 1 * 60 * 1000,
     });
 
     return res.json({ success: true, accessToken: newAccessToken });
   } catch (err) {
-    return res.status(403).json({ message: "Invalid or expired refresh token" });
+    return res.status(403).json({ message: "Refresh token expired or invalid" });
   }
 };
+
 
 // 🚪 Logout Admin
 exports.logoutAdmin = async (req, res) => {

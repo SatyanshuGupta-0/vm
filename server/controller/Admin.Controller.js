@@ -55,7 +55,6 @@ exports.registerAdmin = async (req, res) => {
 // 🔐 Login Admin
 exports.loginAdmin = async (req, res) => {
   try {
-    console.log("Incoming Body:", req.body);
     const { email, password } = req.body;
 
     const user = await Admin.findOne({ email });

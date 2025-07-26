@@ -19,7 +19,7 @@ const setRefreshTokenCookie = (res, token) => {
 
 // 🍪 Set Access Token Cookie
 const setAccessTokenCookie = (res, token) => {
-  res.cookie("accessToken", token, {
+  res.cookie("adminToken", token, {
     httpOnly: true,
     secure: true,
     sameSite: "None",

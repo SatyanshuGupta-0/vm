@@ -91,14 +91,14 @@ exports.loginAdmin = async (req, res) => {
 
 
 exports.refreshToken = async (req, res) => {
-  console.log("🌐 Cookies:", req.cookies); // 🔍 Check if refreshToken is present
+ 
 
   const token = req.cookies.refreshToken;
   if (!token) return res.status(401).json({ message: "No refresh token provided" });
 
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY_REFRESH_TOKEN);
-    console.log(decoded)
+  
     const admin = await Admin.findById(decoded.id);
     if (!admin || admin.refresh_token !== token) {
       return res.status(403).json({ message: "Invalid refresh token" });

@@ -64,14 +64,14 @@ exports.loginAdmin = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
-    const accessToken = generateAccessToken(user._id);
+    const adminToken = generateAccessToken(user._id);
     const refreshToken = await generateRefreshToken(user._id); // ✅ Fix here
 
     user.refresh_token = refreshToken;
     user.last_login_date = new Date();
     await user.save(); // ✅ Now refresh_token is a string, not a Promise
 
-    setAccessTokenCookie(res, accessToken);
+    setAccessTokenCookie(res, adminToken);
     setRefreshTokenCookie(res, refreshToken);
 
     res.json({

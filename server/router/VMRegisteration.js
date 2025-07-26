@@ -44,6 +44,6 @@ router.get("/user-details", auth, userDetails);
 
 // Admin routes
 router.get("/getuser",  isAdmin("superadmin"), getAllUsers);
-router.get("/:id",  isAdmin("superadmin","admin"), getUserByIdController);
+router.get("/:id",  isAdmin("superadmin","admin","shopkeeper"), getUserByIdController);
 
 module.exports = router;

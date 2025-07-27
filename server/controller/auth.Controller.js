@@ -2,6 +2,37 @@ const jwt = require("jsonwebtoken");
 const UserModel = require("../model/VMUsermodel");
 const generatedAccessToken = require("../utils/generatedAccessToken");
 
+// exports.refreshTokenController = async (req, res) => {
+//   const refreshToken = req.cookies.refreshToken;
+
+//   if (!refreshToken) {
+//     return res.status(401).json({ message: "No refresh token provided" });
+//   }
+
+//   try {
+//     const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN);
+//     const user = await UserModel.findById(decoded.id);
+
+//     if (!user || user.refresh_token !== refreshToken) {
+//       return res.status(403).json({ message: "Invalid refresh token" });
+//     }
+
+//     const newAccessToken = await generatedAccessToken(user._id);
+
+//     res.cookie("accessToken", newAccessToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "None",
+//       path: "/", // ✅ Make sure this is set
+//     });
+
+//     return res.json({ success: true, accessToken: newAccessToken });
+//  // ✅ Don't send token to frontend
+//   } catch (err) {
+//     return res.status(403).json({ message: "Invalid or expired refresh token" });
+//   }
+// };
+
 exports.refreshTokenController = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
@@ -13,7 +44,8 @@ exports.refreshTokenController = async (req, res) => {
     const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN);
     const user = await UserModel.findById(decoded.id);
 
-    if (!user || user.refresh_token !== refreshToken) {
+    // ✅ Check if token is in user's refresh_tokens array
+    if (!user || !user.refresh_tokens.includes(refreshToken)) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
@@ -23,15 +55,15 @@ exports.refreshTokenController = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "None",
-      path: "/", // ✅ Make sure this is set
+      path: "/",
     });
 
     return res.json({ success: true, accessToken: newAccessToken });
- // ✅ Don't send token to frontend
   } catch (err) {
     return res.status(403).json({ message: "Invalid or expired refresh token" });
   }
 };
+
 
 exports.meController = async (req, res) => {
   try {

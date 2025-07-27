@@ -21,7 +21,7 @@ exports.refreshTokenController = async (req, res) => {
 
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "None",
       path: "/", // ✅ Make sure this is set
     });

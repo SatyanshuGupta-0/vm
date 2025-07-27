@@ -218,7 +218,7 @@ const updateOrderStatus = async (req, res) => {
       updateData.payment_status = payment_status;
     }
 
-    const updatedOrder = await Order.findByIdAndUpdate(id, updateData, { new: true });
+    const updatedOrder = await OrderModel.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!updatedOrder) {
       return res.status(404).json({ error: "Order not found" });

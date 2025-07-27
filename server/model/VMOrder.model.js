@@ -73,6 +73,8 @@ const orderSchema = new mongoose.Schema({
     enum: ["placed", "shipped","out-for-delivery", "delivered", "cancelled"],
     default: "placed",
   },
+  deliveredAt: Date,
+  shippedAt: Date,
   cancelledAt: {
     type: Date,
     default: null,

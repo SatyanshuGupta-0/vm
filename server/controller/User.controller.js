@@ -13,89 +13,6 @@ const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
-// const googleLoginController = async (req, res) => {
-//   try {
-//     const { token } = req.body;
-
-//     if (!token) {
-//       return res.status(400).json({ message: "Missing token", success: false });
-//     }
-
-//     const ticket = await client.verifyIdToken({
-//       idToken: token,
-//       audience: process.env.GOOGLE_CLIENT_ID,
-//     });
-
-//     const payload = ticket.getPayload();
-
-//     const { email_verified, email, name, picture } = payload;
-
-//     if (!email_verified) {
-//       return res.status(400).json({ message: "Email not verified", success: false });
-//     }
-
-//     let user = await UserModel.findOne({ email });
-
-//     if (!user) {
-//       user = new UserModel({
-//         name,
-//         email,
-//         password: "", // because Google
-//         verify_email: true,
-//         avatar: picture,
-//         status: "Active",
-//         role: ["USER"],
-//       });
-
-//       await user.save();
-//     } else {
-//       if (user.status !== "Active") {
-//         return res.status(403).json({
-//           message: "Account disabled by admin",
-//           success: false,
-//         });
-//       }
-//     }
-
-//     const accessToken = await generatedAccessToken(user._id);
-//     const refreshToken = await generatedRefreshToken(user._id);
-
-//     res.cookie("accessToken", accessToken, {
-//       httpOnly: true,
-//       secure: true,
-//       sameSite: "None",
-//       path: "/",
-//       maxAge: 1000 * 60 * 10,
-//     });
-
-//     res.cookie("refreshToken", refreshToken, {
-//       httpOnly: true,
-//       secure: true,
-//       sameSite: "None",
-//       path: "/",
-//       maxAge: 1000 * 60 * 60 * 24 * 7,
-//     });
-
-//     return res.status(200).json({
-//       message: "Google login/register successful",
-//       success: true,
-//       data: {
-//         accessToken,
-//         refreshToken,
-//         user: {
-//           _id: user._id,
-//           name: user.name,
-//           email: user.email,
-//           avatar: user.avatar,
-//         },
-//       },
-//     });
-//   } catch (error) {
-//     console.error("❌ Google Auth Error:", error.message || error);
-//     return res.status(500).json({ message: "Server Error", error: true });
-//   }
-// };
-
 const googleLoginController = async (req, res) => {
   try {
     const { token } = req.body;
@@ -110,6 +27,7 @@ const googleLoginController = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
+
     const { email_verified, email, name, picture } = payload;
 
     if (!email_verified) {
@@ -122,24 +40,25 @@ const googleLoginController = async (req, res) => {
       user = new UserModel({
         name,
         email,
-        password: "",
+        password: "", // because Google
         verify_email: true,
         avatar: picture,
         status: "Active",
         role: ["USER"],
       });
-    } else if (user.status !== "Active") {
-      return res.status(403).json({ message: "Account disabled by admin", success: false });
+
+      await user.save();
+    } else {
+      if (user.status !== "Active") {
+        return res.status(403).json({
+          message: "Account disabled by admin",
+          success: false,
+        });
+      }
     }
 
     const accessToken = await generatedAccessToken(user._id);
     const refreshToken = await generatedRefreshToken(user._id);
-
-    // ⬇️ Store new refresh token in array
-    if (!user.refresh_tokens.includes(refreshToken)) {
-      user.refresh_tokens.push(refreshToken);
-      await user.save();
-    }
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
@@ -161,6 +80,8 @@ const googleLoginController = async (req, res) => {
       message: "Google login/register successful",
       success: true,
       data: {
+        accessToken,
+        refreshToken,
         user: {
           _id: user._id,
           name: user.name,
@@ -344,75 +265,6 @@ const verifyEmailController = async (req, res) => {
     }
 }
 
-// const loginUserController = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     const user = await UserModel.findOne({ email });
-
-//     if (!user) {
-//       return res.status(400).json({
-//         message: "User not registered",
-//         error: true,
-//         success: false,
-//       });
-//     }
-
-//     if (user.status !== "Active") {
-//       return res.status(400).json({
-//         message: "Contact Admin for account status",
-//         error: true,
-//         success: false,
-//       });
-//     }
-
-//     if (!user.verify_email) {
-//       return res.status(400).json({
-//         message: "Your Email is not verified yet. Please verify your email first",
-//         error: true,
-//         success: false,
-//       });
-//     }
-
-//     const checkPassword = await bcrypt.compare(password, user.password);
-//     if (!checkPassword) {
-//       return res.status(400).json({
-//         message: "Invalid password",
-//         error: true,
-//         success: false,
-//       });
-//     }
-
-//     const accessToken = await generatedAccessToken(user._id);
-//     const refreshToken = await generatedRefreshToken(user._id);
-
-//     await UserModel.findByIdAndUpdate(user._id, { last_login_date: new Date() });
-
-//     const cookieOptions = {
-//       httpOnly: true,
-//       secure: true,
-//       sameSite: "None",
-//       path: "/",
-//       maxAge: 1000 * 60 * 10, // 15 minutes for accessToken
-//     };
-
-//     res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 10 });
-//     res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 }); // 7 days
-
-//     return res.json({
-//       message: "Login successful",
-//       error: false,
-//       success: true,
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       message: error.message || "Internal Server Error",
-//       error: true,
-//       success: false,
-//     });
-//   }
-// };
-
 const loginUserController = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -455,19 +307,17 @@ const loginUserController = async (req, res) => {
     const accessToken = await generatedAccessToken(user._id);
     const refreshToken = await generatedRefreshToken(user._id);
 
-    // Save refreshToken in array
-    user.last_login_date = new Date();
-    user.refresh_tokens.push(refreshToken);
-    await user.save();
+    await UserModel.findByIdAndUpdate(user._id, { last_login_date: new Date() });
 
     const cookieOptions = {
       httpOnly: true,
       secure: true,
       sameSite: "None",
       path: "/",
+      maxAge: 1000 * 60 * 10, // 15 minutes for accessToken
     };
 
-    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 10 }); // 10 min
+    res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 10 });
     res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 }); // 7 days
 
     return res.json({
@@ -475,7 +325,6 @@ const loginUserController = async (req, res) => {
       error: false,
       success: true,
     });
-
   } catch (error) {
     return res.status(500).json({
       message: error.message || "Internal Server Error",

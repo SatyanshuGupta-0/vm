@@ -135,7 +135,7 @@ exports.logoutAdmin = async (req, res) => {
       path: "/",
     });
 
-    res.clearCookie("accessToken", {
+    res.clearCookie("adminToken", {
       httpOnly: true,
       secure: true,
       sameSite: "None",

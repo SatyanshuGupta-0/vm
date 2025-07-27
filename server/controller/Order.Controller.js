@@ -207,7 +207,6 @@ const updateOrderStatus = async (req, res) => {
 
     const updateData = {};
 
-    // Handle order status change
     if (status) {
       updateData.status = status;
       if (status === "shipped") updateData.shippedAt = new Date();
@@ -215,28 +214,23 @@ const updateOrderStatus = async (req, res) => {
       if (status === "cancelled") updateData.cancelledAt = new Date();
     }
 
-    // Handle payment status change
     if (payment_status) {
       updateData.payment_status = payment_status;
     }
 
-    const updatedOrder = await Order.findByIdAndUpdate(id, updateData, {
-      new: true,
-    }).populate("userId delivery_address products.productId");
+    const updatedOrder = await Order.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!updatedOrder) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    res.status(200).json({
-      message: "Order updated successfully",
-      order: updatedOrder,
-    });
-  } catch (error) {
-    console.error("Error updating order:", error);
-    res.status(500).json({ error: "Failed to update order" });
+    res.status(200).json({ message: "Order updated successfully", order: updatedOrder });
+  } catch (err) {
+    console.error("Error in updateOrderStatus:", err);
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 };
+
 
 
 module.exports = {

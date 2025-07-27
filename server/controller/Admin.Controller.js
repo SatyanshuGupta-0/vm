@@ -111,7 +111,7 @@ exports.refreshToken = async (req, res) => {
       secure: true,
       sameSite: "None",
       path: "/",
-      maxAge: 1 * 60 * 1000,
+      maxAge: 10 * 60 * 1000,
     });
 
     return res.json({ success: true, accessToken: newAccessToken });

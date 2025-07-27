@@ -124,17 +124,35 @@ exports.refreshToken = async (req, res) => {
 // 🚪 Logout Admin
 exports.logoutAdmin = async (req, res) => {
   try {
-    res.clearCookie("refreshToken", { path: "/", sameSite: "None", secure: true });
-    res.clearCookie("accessToken", { path: "/", sameSite: "None", secure: true });
-
+    // Get admin ID from request (can be sent from frontend)
     const { id } = req.body;
-    if (id) await Admin.findByIdAndUpdate(id, { refresh_token: null });
 
-    res.json({ message: "Logged out successfully" });
+    // Clear cookies
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+    });
+
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+    });
+
+    // Clear refresh token from DB
+    if (id) {
+      await Admin.findByIdAndUpdate(id, { refresh_token: null });
+    }
+
+    res.json({ success: true, message: "Logged out successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Logout failed" });
+    res.status(500).json({ message: "Logout failed", error: err.message });
   }
 };
+
 
 // 👤 Admin Profile
 exports.getAdminProfile = async (req, res) => {

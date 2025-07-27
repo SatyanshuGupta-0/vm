@@ -68,7 +68,7 @@ const googleLoginController = async (req, res) => {
       maxAge: 1000 * 60 * 10,
     });
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("userRefreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "None",
@@ -318,7 +318,7 @@ const loginUserController = async (req, res) => {
     };
 
     res.cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 1000 * 60 * 10 });
-    res.cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 }); // 7 days
+    res.cookie("userRefreshToken", refreshToken, { ...cookieOptions, maxAge: 1000 * 60 * 60 * 24 * 7 }); // 7 days
 
     return res.json({
       message: "Login successful",
@@ -346,7 +346,7 @@ const logoutController = async (req, res) => {
 
     // Clear cookies
     res.clearCookie("accessToken", cookiesOption);
-    res.clearCookie("refreshToken", cookiesOption);
+    res.clearCookie("userRefreshToken", cookiesOption);
 
     // Optional: Clear refresh token in DB
     if (userId) {

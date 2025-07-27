@@ -21,7 +21,7 @@ exports.refreshTokenController = async (req, res) => {
 
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "None",
       path: "/", // ✅ Make sure this is set
     });
@@ -32,8 +32,6 @@ exports.refreshTokenController = async (req, res) => {
     return res.status(403).json({ message: "Invalid or expired refresh token" });
   }
 };
-
-
 
 exports.meController = async (req, res) => {
   try {

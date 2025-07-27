@@ -209,6 +209,7 @@ const updateOrderStatus = async (req, res) => {
 
     if (status) {
       updateData.status = status;
+
       if (status === "shipped") updateData.shippedAt = new Date();
       if (status === "delivered") updateData.deliveredAt = new Date();
       if (status === "cancelled") updateData.cancelledAt = new Date();
@@ -231,6 +232,32 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// ✅ Refund eligibility controller
+const checkRefundEligibility = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const order = await OrderModel.findById(id);
+    if (!order || !order.deliveredAt) {
+      return res.status(404).json({ message: "Order not found or not delivered" });
+    }
+
+    const now = new Date();
+    const diffInDays = (now - new Date(order.deliveredAt)) / (1000 * 60 * 60 * 24);
+    const eligible = diffInDays <= 7;
+
+    res.json({
+      eligible,
+      deliveredAt: order.deliveredAt,
+      refundValidTill: new Date(order.deliveredAt.getTime() + 7 * 24 * 60 * 60 * 1000),
+      message: eligible ? "Refund eligible" : "Refund window expired",
+    });
+  } catch (err) {
+    console.error("Error in checkRefundEligibility:", err);
+    res.status(500).json({ error: "Server error", details: err.message });
+  }
+};
+
 
 
 module.exports = {
@@ -239,4 +266,5 @@ module.exports = {
   viewOrderController,
   getAllOrdersController,
   updateOrderStatus,
+  checkRefundEligibility,
 };

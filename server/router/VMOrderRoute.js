@@ -5,6 +5,7 @@ const {
   cancelOrderController,
   viewOrderController,
   getAllOrdersController,
+  updateOrderStatus,
 } = require("../controller/Order.Controller");
 
 const auth = require("../middlewares/auth");
@@ -21,6 +22,8 @@ router.put("/cancel/:id", auth, cancelOrderController);
 router.get("/user-orders", auth, viewOrderController);
 
 // Admin: View all orders
-router.get("/all-orders",isAdmin("superadmin","shopkeeper"),   getAllOrdersController);
+router.get("/all-orders",isAdmin("superadmin","shopkeeper"),  getAllOrdersController);
+
+router.put("/updateStatus/:id",isAdmin("superadmin","shopkeeper"), updateOrderStatus);
 
 module.exports = router;

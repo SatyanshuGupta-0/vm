@@ -3,8 +3,8 @@ const UserModel = require("../model/VMUsermodel");
 const generatedAccessToken = require("../utils/generatedAccessToken");
 
 exports.refreshTokenController = async (req, res) => {
-  const refreshToken = req.cookies.userRefreshToken;
-console.log(req)
+  const refreshToken = req.cookies.refreshToken;
+console.log( refreshToken)
   if (!refreshToken) {
     return res.status(401).json({ message: "No refresh token provided" });
   }

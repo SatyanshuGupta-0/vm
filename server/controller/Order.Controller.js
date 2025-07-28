@@ -71,6 +71,55 @@ const placeOrderController = async (req, res) => {
 };
 
 // Cancel Order
+// const cancelOrderController = async (req, res) => {
+//   try {
+//     const userId = req.user?.id;
+//     const { id } = req.params;
+
+//     if (!userId || !id) {
+//       return res.status(400).json({
+//         success: false,
+//         error: true,
+//         message: "Missing userId or order ID",
+//       });
+//     }
+
+//     const order = await OrderModel.findOne({ _id: id, userId });
+
+//     if (!order) {
+//       return res.status(404).json({
+//         success: false,
+//         error: true,
+//         message: "Order not found",
+//       });
+//     }
+
+//     if (["delivered", "cancelled"].includes(order.status.toLowerCase())) {
+//       return res.status(400).json({
+//         success: false,
+//         error: true,
+//         message: `Cannot cancel an order that is already ${order.status}`,
+//       });
+//     }
+
+//     order.payment_status = "cancelled";
+//     order.status = "cancelled";
+//     order.cancelledAt = new Date();
+//     await order.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       error: false,
+//       message: "Order cancelled successfully",
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       error: true,
+//       message: error.message || "Something went wrong",
+//     });
+//   }
+// };
 const cancelOrderController = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -94,11 +143,27 @@ const cancelOrderController = async (req, res) => {
       });
     }
 
-    if (["delivered", "cancelled"].includes(order.status.toLowerCase())) {
+    if (order.status.toLowerCase() === "cancelled") {
       return res.status(400).json({
         success: false,
         error: true,
-        message: `Cannot cancel an order that is already ${order.status}`,
+        message: "Order is already cancelled",
+      });
+    }
+
+    if (order.status.toLowerCase() === "delivered") {
+      return res.status(400).json({
+        success: false,
+        error: true,
+        message: "Delivered orders cannot be cancelled. Please request a refund instead.",
+      });
+    }
+
+    if (order.refundRequested) {
+      return res.status(400).json({
+        success: false,
+        error: true,
+        message: "Cannot cancel the order as a refund has already been requested.",
       });
     }
 
@@ -120,6 +185,8 @@ const cancelOrderController = async (req, res) => {
     });
   }
 };
+
+
 
 // View User's Orders
 const viewOrderController = async (req, res) => {

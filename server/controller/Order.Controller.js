@@ -304,7 +304,8 @@ const requestRefundController = async (req, res) => {
 
     if (order.refundRequested)
       return res.status(400).json({ message: "Refund already requested" });
-
+    
+    order.status = "refundRequested";
     order.refundRequested = true;
     order.refundRequestedAt = new Date();
     await order.save();

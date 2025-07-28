@@ -53,7 +53,7 @@ const orderSchema = new mongoose.Schema({
   payment_status: {
   type: String,
   enum: ["Pending", "Paid", "Failed", "Refunded"],
-  default: "pending",
+  default: "Pending",
 },
 
   delivery_address: {
@@ -79,7 +79,7 @@ const orderSchema = new mongoose.Schema({
     "RefundRequested",
     "Refunded"
   ],
-    default: "placed",
+    default: "Placed",
   },
   deliveredAt: Date,
   shippedAt: Date,

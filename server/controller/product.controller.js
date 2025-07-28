@@ -725,9 +725,6 @@ exports.getPaginatedProducts = async (req, res) => {
 //     res.status(500).json({ error: "Server error while deleting variant" });
 //   }
 // };
-const Product = require("../models/Product");
-const cloudinary = require("cloudinary").v2;
-const mongoose = require("mongoose");
 
 exports.deleteVariantFromProduct = async (req, res) => {
   try {

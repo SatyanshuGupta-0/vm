@@ -667,10 +667,78 @@ exports.getPaginatedProducts = async (req, res) => {
 
 // DELETE /api/product/:productId/variant/:variantId
 
+// exports.deleteVariantFromProduct = async (req, res) => {
+//   try {
+//     const { productId, variantId } = req.params;
+
+//     const product = await Product.findById(productId);
+//     if (!product) {
+//       return res.status(404).json({ message: "Product not found" });
+//     }
+
+//     // ✅ Role-based access control
+//     const adminId = req.admin?.id;
+//     const adminRole = req.admin?.role;
+
+//     const isOwner = product.createdBy?.toString() === adminId;
+//     const hasAccessRole = ["admin", "superadmin"].includes(adminRole);
+
+//     if (!isOwner && !hasAccessRole) {
+//       return res.status(403).json({
+//         message: "Unauthorized: Only the creator or an admin/superadmin can delete this product",
+//       });
+//     }
+
+//     // ✅ Find the variant
+//     if (!Array.isArray(product.variantOptions)) {
+//       return res.status(400).json({ message: "No variants available" });
+//     }
+
+//     const variant = product.variantOptions.find(v => v._id.toString() === variantId);
+//     if (!variant) {
+//       return res.status(404).json({ message: "Variant not found" });
+//     }
+
+//     // ✅ Delete images from Cloudinary
+//     const imageDeletionPromises = (variant.color?.images || []).map(async (img) => {
+//       if (img.public_id) {
+//         try {
+//           await cloudinary.uploader.destroy(img.public_id);
+//         } catch (err) {
+//           console.warn(`Cloudinary deletion error for ${img.public_id}:`, err.message);
+//         }
+//       }
+//     });
+
+//     await Promise.all(imageDeletionPromises);
+
+//     // ✅ Remove variant and save
+//     product.variantOptions = product.variantOptions.filter(v => v._id.toString() !== variantId);
+//     await product.save();
+
+//     res.status(200).json({
+//       message: "Variant and its images deleted successfully",
+//       updatedProduct: product,
+//     });
+//   } catch (err) {
+//     console.error("Failed to delete variant:", err.stack || err);
+//     res.status(500).json({ error: "Server error while deleting variant" });
+//   }
+// };
+const Product = require("../models/Product");
+const cloudinary = require("cloudinary").v2;
+const mongoose = require("mongoose");
+
 exports.deleteVariantFromProduct = async (req, res) => {
   try {
     const { productId, variantId } = req.params;
 
+    // Validate productId and variantId
+    if (!mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(variantId)) {
+      return res.status(400).json({ message: "Invalid product or variant ID" });
+    }
+
+    // Find the product
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -689,35 +757,46 @@ exports.deleteVariantFromProduct = async (req, res) => {
       });
     }
 
-    // ✅ Find the variant
+    // ✅ Ensure variantOptions is an array
     if (!Array.isArray(product.variantOptions)) {
-      return res.status(400).json({ message: "No variants available" });
+      return res.status(400).json({ message: "No variants available for this product" });
     }
 
-    const variant = product.variantOptions.find(v => v._id.toString() === variantId);
+    // ✅ Find the variant
+    const variant = product.variantOptions.find(
+      (v) => v._id.toString() === variantId
+    );
+
     if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
 
-    // ✅ Delete images from Cloudinary
-    const imageDeletionPromises = (variant.color?.images || []).map(async (img) => {
+    // ✅ Delete variant images from Cloudinary
+    const images = Array.isArray(variant.color?.images) ? variant.color.images : [];
+    const imageDeletionPromises = images.map(async (img) => {
       if (img.public_id) {
         try {
           await cloudinary.uploader.destroy(img.public_id);
         } catch (err) {
-          console.warn(`Cloudinary deletion error for ${img.public_id}:`, err.message);
+          console.error(`Cloudinary deletion error for ${img.public_id}:`, err);
         }
       }
     });
 
     await Promise.all(imageDeletionPromises);
 
-    // ✅ Remove variant and save
-    product.variantOptions = product.variantOptions.filter(v => v._id.toString() !== variantId);
+    // ✅ Remove the variant from the array
+    product.variantOptions = product.variantOptions.filter(
+      (v) => v._id.toString() !== variantId
+    );
+
+    // ✅ Save the updated product
     await product.save();
 
+    // ✅ Success response
     res.status(200).json({
       message: "Variant and its images deleted successfully",
+      deletedVariant: variant,
       updatedProduct: product,
     });
   } catch (err) {
@@ -725,3 +804,4 @@ exports.deleteVariantFromProduct = async (req, res) => {
     res.status(500).json({ error: "Server error while deleting variant" });
   }
 };
+

@@ -668,7 +668,8 @@ exports.getPaginatedProducts = async (req, res) => {
 exports.deleteVariantFromProduct = async (req, res) => {
   try {
     const { productId, variantId } = req.params;
-
+console.log( productId )
+console.log( variantId  )
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });

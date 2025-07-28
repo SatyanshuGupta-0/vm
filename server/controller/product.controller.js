@@ -675,13 +675,16 @@ exports.deleteVariantFromProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-
+console.log("product",product)
     // ✅ Role-based access control
     const adminId = req.admin?.id;
     const adminRole = req.admin?.role;
+console.log("adid",adminId)
+console.log("adrole",adminRole)
 
     const isOwner = product.createdBy?.toString() === adminId;
     const hasAccessRole = ["admin", "superadmin"].includes(adminRole);
+console.log("isown",isOwner)
 
     if (!isOwner && !hasAccessRole) {
       return res.status(403).json({
@@ -695,6 +698,7 @@ exports.deleteVariantFromProduct = async (req, res) => {
     }
 
     const variant = product.variantOptions.find(v => v._id.toString() === variantId);
+console.log("variant",variant)
     if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
@@ -714,6 +718,7 @@ exports.deleteVariantFromProduct = async (req, res) => {
 
     // ✅ Remove variant and save
     product.variantOptions = product.variantOptions.filter(v => v._id.toString() !== variantId);
+console.log(product)
     await product.save();
 
     res.status(200).json({

@@ -28,6 +28,6 @@ router.get("/all-orders",isAdmin("superadmin","shopkeeper"),  getAllOrdersContro
 
 router.put("/updateStatus/:id",isAdmin("superadmin","shopkeeper"), updateOrderStatus);
 router.get("/refund-eligibility/:id", checkRefundEligibility);
-router.post("/refund-request/:orderId", protect, requestRefundController);
+router.post("/refund-request/:orderId",  requestRefundController);
 
 module.exports = router;

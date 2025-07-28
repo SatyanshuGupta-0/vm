@@ -7,6 +7,7 @@ const {
   getAllOrdersController,
   updateOrderStatus,
   checkRefundEligibility,
+  requestRefundController,
 } = require("../controller/Order.Controller");
 
 const auth = require("../middlewares/auth");
@@ -27,5 +28,6 @@ router.get("/all-orders",isAdmin("superadmin","shopkeeper"),  getAllOrdersContro
 
 router.put("/updateStatus/:id",isAdmin("superadmin","shopkeeper"), updateOrderStatus);
 router.get("/refund-eligibility/:id", checkRefundEligibility);
+router.post("/refund-request/:orderId", protect, requestRefundController);
 
 module.exports = router;

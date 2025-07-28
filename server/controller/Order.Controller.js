@@ -283,6 +283,39 @@ const checkRefundEligibility = async (req, res) => {
 };
 
 
+const requestRefundController = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user._id;
+
+    const order = await OrderModel.findOne({ _id: orderId, user: userId });
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.status !== "delivered")
+      return res.status(400).json({ message: "Only delivered orders can be refunded" });
+
+    const refundWindow = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const deliveredAt = new Date(order.deliveredAt);
+    const now = new Date();
+
+    if (now - deliveredAt > refundWindow)
+      return res.status(400).json({ message: "Refund window expired" });
+
+    if (order.refundRequested)
+      return res.status(400).json({ message: "Refund already requested" });
+
+    order.refundRequested = true;
+    order.refundRequestedAt = new Date();
+    await order.save();
+
+    res.json({ message: "Refund request submitted successfully" });
+  } catch (err) {
+    console.error("Refund error:", err);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 
 module.exports = {
   placeOrderController,
@@ -291,4 +324,5 @@ module.exports = {
   getAllOrdersController,
   updateOrderStatus,
   checkRefundEligibility,
+  requestRefundController,
 };

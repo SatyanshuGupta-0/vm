@@ -675,16 +675,12 @@ exports.deleteVariantFromProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-console.log("product",product)
-    // ✅ Role-based access control
+
     const adminId = req.admin?.id;
     const adminRole = req.admin?.role;
-console.log("adid",adminId)
-console.log("adrole",adminRole)
 
     const isOwner = product.createdBy?.toString() === adminId;
     const hasAccessRole = ["admin", "superadmin"].includes(adminRole);
-console.log("isown",isOwner)
 
     if (!isOwner && !hasAccessRole) {
       return res.status(403).json({
@@ -692,18 +688,16 @@ console.log("isown",isOwner)
       });
     }
 
-    // ✅ Find the variant
     if (!Array.isArray(product.variantOptions)) {
       return res.status(400).json({ message: "No variants available" });
     }
 
     const variant = product.variantOptions.find(v => v._id.toString() === variantId);
-console.log("variant",variant)
     if (!variant) {
       return res.status(404).json({ message: "Variant not found" });
     }
 
-    // ✅ Delete images from Cloudinary
+    // Delete Cloudinary images
     const imageDeletionPromises = (variant.color?.images || []).map(async (img) => {
       if (img.public_id) {
         try {
@@ -713,21 +707,25 @@ console.log("variant",variant)
         }
       }
     });
-
     await Promise.all(imageDeletionPromises);
 
-    // ✅ Remove variant and save
+    // Remove variant
     product.variantOptions = product.variantOptions.filter(v => v._id.toString() !== variantId);
-console.log(product)
+
+    // 👇 Double check createdBy exists before save
+    if (!product.createdBy) {
+      return res.status(400).json({ message: "Product missing creator info (createdBy)" });
+    }
+
     await product.save();
 
     res.status(200).json({
       message: "Variant and its images deleted successfully",
       updatedProduct: product,
     });
+
   } catch (err) {
     console.error("Failed to delete variant:", err.stack || err);
     res.status(500).json({ error: "Server error while deleting variant" });
   }
 };
-

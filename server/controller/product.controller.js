@@ -679,7 +679,7 @@ exports.deleteVariantFromProduct = async (req, res) => {
     const adminRole = req.admin?.role;
 
     const isAuthorized =
-      product.createdBy.toString() === adminId || // Creator
+      product.createdBy.toString() === adminId && // Creator
       ["admin", "superadmin"].includes(adminRole); // Elevated roles
 
     if (!isAuthorized) {

@@ -39,7 +39,8 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 const allowedOrigins = [
   "http://localhost:5173",
   "http://192.168.31.244:5000",
-  "https://vehiclemodified.netlify.app"
+  "https://vehiclemodified.netlify.app",
+  "https://vmbusiness.netlify.app"
 ];
 
 const corsOptions = {

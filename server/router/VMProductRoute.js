@@ -37,7 +37,7 @@ const {
 router.post('/uploadImages',  isAdmin("superadmin","shopkeeper"), upload.array('images'), uploadImages);
 router.post('/create',isAdmin("superadmin","shopkeeper"), createProduct);
 // router.delete('/:id',  isAdmin("superadmin"), deleteProduct);
-router.delete('/deletes/:id',  isAdmin("shopkeeper"), deleteProductS);
+router.delete('/deletes/:id',  isAdmin("superadmin","shopkeeper"), deleteProductS);
 router.post('/deleteImage',  isAdmin("superadmin","shopkeeper"), removeImageFromCloudinary);
 router.put('/updateProduct/:id',  isAdmin("superadmin", "shopkeeper"), updateProduct);
 router.post('/delete-model',  isAdmin("superadmin"), deleteModelController);

@@ -1,6 +1,7 @@
 const Product = require('../model/VMProduct.model');
 const cloudinary = require('../config/cloudinaryConfig');
 const fs = require('fs');
+const mongoose = require("mongoose");
 
 // Upload images to Cloudinary
 exports.uploadImages = async (req, res) => {

@@ -143,27 +143,11 @@ const cancelOrderController = async (req, res) => {
       });
     }
 
-    if (order.status.toLowerCase() === "cancelled") {
+    if (["delivered", "cancelled"].includes(order.status.toLowerCase())) {
       return res.status(400).json({
         success: false,
         error: true,
-        message: "Order is already cancelled",
-      });
-    }
-
-    if (order.status.toLowerCase() === "delivered") {
-      return res.status(400).json({
-        success: false,
-        error: true,
-        message: "Delivered orders cannot be cancelled. Please request a refund instead.",
-      });
-    }
-
-    if (order.refundRequested) {
-      return res.status(400).json({
-        success: false,
-        error: true,
-        message: "Cannot cancel the order as a refund has already been requested.",
+        message: `Cannot cancel an order that is already ${order.status}`,
       });
     }
 
@@ -185,7 +169,6 @@ const cancelOrderController = async (req, res) => {
     });
   }
 };
-
 
 
 // View User's Orders

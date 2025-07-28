@@ -70,7 +70,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["placed", "shipped","out-for-delivery", "delivered", "cancelled"],
+    enum: ["placed", "shipped","out-for-delivery", "delivered", "cancelled","refundRequested"],
     default: "placed",
   },
   deliveredAt: Date,

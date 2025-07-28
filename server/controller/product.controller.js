@@ -505,7 +505,7 @@ exports.updateProduct = async (req, res) => {
 
     // 🛡️ Optional Role Check: Only creator or higher roles can update
    const isOwner = product.createdBy?.toString() === adminId;
-    const hasAccessRole = ["admin", "superadmin"].includes(adminRole);
+    const hasAccessRole = ["admin", "superadmin"].includes(role);
 
     if (!isOwner && !hasAccessRole) {
       return res.status(403).json({

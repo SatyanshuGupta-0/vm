@@ -504,11 +504,13 @@ exports.updateProduct = async (req, res) => {
     if (!product) return res.status(404).json({ error: "Product not found" });
 
     // 🛡️ Optional Role Check: Only creator or higher roles can update
-    if (
-      product.createdBy.toString() !== adminId.toString() &&
-      !["admin", "superadmin", "manager"].includes(role)
-    ) {
-      return res.status(403).json({ error: "Unauthorized to update this product" });
+   const isOwner = product.createdBy?.toString() === adminId;
+    const hasAccessRole = ["admin", "superadmin"].includes(adminRole);
+
+    if (!isOwner && !hasAccessRole) {
+      return res.status(403).json({
+        message: "Unauthorized: Only the creator or an admin/superadmin can delete this product",
+      });
     }
 
     const updated = await Product.findByIdAndUpdate(productId, req.body, {
@@ -668,8 +670,7 @@ exports.getPaginatedProducts = async (req, res) => {
 exports.deleteVariantFromProduct = async (req, res) => {
   try {
     const { productId, variantId } = req.params;
-console.log( productId )
-console.log( variantId  )
+
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -679,12 +680,13 @@ console.log( variantId  )
     const adminId = req.admin?.id;
     const adminRole = req.admin?.role;
 
-    const isAuthorized =
-      product.createdBy.toString() === adminId && // Creator
-      ["admin", "superadmin"].includes(adminRole); // Elevated roles
+    const isOwner = product.createdBy?.toString() === adminId;
+    const hasAccessRole = ["admin", "superadmin"].includes(adminRole);
 
-    if (!isAuthorized) {
-      return res.status(403).json({ message: "Unauthorized: You can't delete this variant" });
+    if (!isOwner && !hasAccessRole) {
+      return res.status(403).json({
+        message: "Unauthorized: Only the creator or an admin/superadmin can delete this product",
+      });
     }
 
     // ✅ Find the variant

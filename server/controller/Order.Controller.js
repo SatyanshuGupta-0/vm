@@ -94,7 +94,7 @@ const cancelOrderController = async (req, res) => {
       });
     }
 
-    if (["delivered", "cancelled"].includes(order.status.toLowerCase())) {
+    if (["Delivered", "Cancelled"].includes(order.status.toLowerCase())) {
       return res.status(400).json({
         success: false,
         error: true,
@@ -103,7 +103,7 @@ const cancelOrderController = async (req, res) => {
     }
 
     
-    order.status = "cancelled";
+    order.status = "Cancelled";
     order.cancelledAt = new Date();
     await order.save();
 
@@ -327,5 +327,6 @@ module.exports = {
   checkRefundEligibility,
   requestRefundController,
 };
+
 
 

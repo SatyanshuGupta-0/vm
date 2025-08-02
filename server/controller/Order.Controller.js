@@ -210,9 +210,9 @@ const updateOrderStatus = async (req, res) => {
     if (status) {
       updateData.status = status;
 
-      if (status === "shipped") updateData.shippedAt = new Date();
-      if (status === "delivered") updateData.deliveredAt = new Date();
-      if (status === "cancelled") updateData.cancelledAt = new Date();
+      if (status === "Shipped") updateData.shippedAt = new Date();
+      if (status === "Delivered") updateData.deliveredAt = new Date();
+      if (status === "Cancelled") updateData.cancelledAt = new Date();
     }
 
     if (payment_status) {
@@ -327,3 +327,4 @@ module.exports = {
   checkRefundEligibility,
   requestRefundController,
 };
+

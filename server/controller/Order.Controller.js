@@ -292,7 +292,7 @@ const requestRefundController = async (req, res) => {
 
     if (!order) return res.status(404).json({ message: "Order not found" });
 
-    if (order.status !== "delivered")
+    if (order.status !== "Delivered")
       return res.status(400).json({ message: "Only delivered orders can be refunded" });
 
     const refundWindow = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -305,7 +305,7 @@ const requestRefundController = async (req, res) => {
     if (order.refundRequested)
       return res.status(400).json({ message: "Refund already requested" });
     
-    order.status = "refundRequested";
+    order.status = "RefundRequested";
     order.refundRequested = true;
     order.refundRequestedAt = new Date();
     await order.save();
@@ -327,4 +327,5 @@ module.exports = {
   checkRefundEligibility,
   requestRefundController,
 };
+
 

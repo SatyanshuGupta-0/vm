@@ -19,9 +19,10 @@ router.get("/", getBanners);
 router.get("/videourl", getSingleBanner);
 
 // ADMIN ONLY: Add, update, delete banners and remove images
-router.post("/",  isAdmin, addBanner);
-router.put("/:id",  isAdmin, updateBanner);
-router.post("/removeImage",  isAdmin, removeImageFromCloudinary);
-router.delete("/:id",  isAdmin, deleteBanner);
+router.post("/",  isAdmin("superadmin"), addBanner);
+router.put("/:id",  isAdmin("superadmin"), updateBanner);
+router.post("/removeImage",  isAdmin("superadmin"), removeImageFromCloudinary);
+router.delete("/:id",  isAdmin("superadmin"), deleteBanner);
 
 module.exports = router;
+

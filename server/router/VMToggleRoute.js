@@ -4,6 +4,7 @@ const isAdmin = require("../middlewares/isAdmin");
 const { getToggle, setToggle } = require('../controller/Toggle.Controller');
 
 router.get('/toggle', getToggle);
-router.post('/toggle',isAdmin, setToggle); // secure with auth in real use
+router.post('/toggle',isAdmin("superadmin"), setToggle); // secure with auth in real use
 
 module.exports = router;
+

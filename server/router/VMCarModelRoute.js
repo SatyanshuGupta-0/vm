@@ -9,12 +9,13 @@ router.get("/", carModelController.getAllCarModels);          // View all car mo
 router.get("/:id", carModelController.getCarModelById);       // View a single car model
 
 // 🔒 Admin-only routes
-router.post("/",  isAdmin, carModelController.createCarModel);         // Create
-router.put("/:id",  isAdmin, carModelController.updateCarModel);       // Update
-router.delete("/:id",  isAdmin, carModelController.deleteCarModel);    // Delete
+router.post("/",  isAdmin("superadmin"), carModelController.createCarModel);         // Create
+router.put("/:id",  isAdmin("superadmin"), carModelController.updateCarModel);       // Update
+router.delete("/:id",  isAdmin("superadmin"), carModelController.deleteCarModel);    // Delete
 
 // 🔒 Admin-only: Delete media from Cloudinary
-router.post("/deleteImage",  isAdmin, carModelController.deleteImage);
-router.post("/deleteModel",  isAdmin, carModelController.deleteModel);
+router.post("/deleteImage",  isAdmin("superadmin"), carModelController.deleteImage);
+router.post("/deleteModel",  isAdmin("superadmin"), carModelController.deleteModel);
 
 module.exports = router;
+

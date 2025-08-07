@@ -506,7 +506,7 @@ exports.updateProduct = async (req, res) => {
 
     // 🛡️ Optional Role Check: Only creator or higher roles can update
    // Get the logged-in user's ID (from JWT/auth middleware)
- const isOwner = product.createdBy?.toString() === adminId;
+ const isOwner = product.createdBy?.toString() === adminId.toString();
     const hasAccessRole = ["admin", "superadmin"].includes(role);
 console.log(isOwner)
     if (!isOwner && !hasAccessRole) {
@@ -731,6 +731,7 @@ exports.deleteVariantFromProduct = async (req, res) => {
     res.status(500).json({ error: "Server error while deleting variant" });
   }
 };
+
 
 
 

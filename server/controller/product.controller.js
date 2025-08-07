@@ -409,6 +409,7 @@ exports.deleteProductS = async (req, res) => {
     const product = await Product.findById(req.params.id);
     const adminId = req.admin?.id;
     const adminRole = req.admin?.role;
+    console.log(adminId)
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -416,10 +417,10 @@ exports.deleteProductS = async (req, res) => {
 
     const isOwner = product.createdBy?.toString() === adminId;
     const hasAccessRole = ["admin", "superadmin"].includes(adminRole);
-
+console.log(isOwner)
     if (!isOwner && !hasAccessRole) {
       return res.status(403).json({
-        message: "Unauthorized: Only the creator or an admin/superadmin can delete this product",
+        message: "Unauthorized: Only the creator or an admin/superadmin can update this product",
       });
     }
 
@@ -730,5 +731,6 @@ exports.deleteVariantFromProduct = async (req, res) => {
     res.status(500).json({ error: "Server error while deleting variant" });
   }
 };
+
 
 

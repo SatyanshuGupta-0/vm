@@ -37,7 +37,7 @@ app.use(express.json({ limit: '10mb' })); // increase limit accordingly
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 const allowedOrigins = [
-  "https://vmodifier.com",
+  "https://www.vmodifier.com/",
   "https://vmbusiness.netlify.app",
     "http://192.168.31.244:5000",
 ];
@@ -91,5 +91,6 @@ const start = async () => {
 };
 
 start();
+
 
 

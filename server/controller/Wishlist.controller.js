@@ -110,42 +110,29 @@ async function getProductWithVariantController(req, res) {
 //   }
 // }
 
-export async function addToWishlistController(req, res) {
+
+
+async function addToWishlistController(req, res) {
   try {
     const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({
-        error: true,
-        success: false,
-        message: "Unauthorized: user not found",
-      });
-    }
+    if (!userId)
+      return res.status(401).json({ message: "Unauthorized: user not found" });
 
     const { productId, variantId, sizeId } = req.body;
 
-    // Validate IDs
-    if (!productId || !variantId) {
-      return res.status(400).json({
-        error: true,
-        success: false,
-        message: "productId and variantId are required",
-      });
-    }
+    if (!productId || !variantId)
+      return res.status(400).json({ message: "productId and variantId are required" });
 
-    // Ensure valid Mongo ObjectIds
+    // Validate IDs
     if (
       !mongoose.Types.ObjectId.isValid(productId) ||
       !mongoose.Types.ObjectId.isValid(variantId) ||
       (sizeId && !mongoose.Types.ObjectId.isValid(sizeId))
     ) {
-      return res.status(400).json({
-        error: true,
-        success: false,
-        message: "Invalid product, variant, or size ID",
-      });
+      return res.status(400).json({ message: "Invalid product, variant, or size ID" });
     }
 
-    // Check if item already exists
+    // Check if already in wishlist
     const existingItem = await wishlistModel.findOne({
       userId,
       productId,
@@ -154,14 +141,10 @@ export async function addToWishlistController(req, res) {
     });
 
     if (existingItem) {
-      return res.status(400).json({
-        error: true,
-        success: false,
-        message: "Item already in Wishlist",
-      });
+      return res.status(400).json({ message: "Item already in Wishlist" });
     }
 
-    // Create new wishlist item
+    // Save new wishlist item
     const wishlist = new wishlistModel({
       userId,
       productId,
@@ -171,24 +154,13 @@ export async function addToWishlistController(req, res) {
 
     await wishlist.save();
 
-    // Update user's wishlist array
-    await userModel.findByIdAndUpdate(userId, {
-      $addToSet: { wishlist: wishlist._id }, // prevents duplicates
-    });
+    // Update user
+    await userModel.findByIdAndUpdate(userId, { $addToSet: { wishlist: wishlist._id } });
 
-    return res.status(201).json({
-      error: false,
-      success: true,
-      message: "The product saved in the wishlist",
-      wishlist,
-    });
+    return res.status(201).json({ message: "Added to wishlist", wishlist });
   } catch (error) {
     console.error("Wishlist add error:", error);
-    return res.status(500).json({
-      message: error.message || error,
-      error: true,
-      success: false,
-    });
+    return res.status(500).json({ message: error.message || "Server error" });
   }
 }
 
@@ -274,4 +246,5 @@ module.exports = {
   getWishlistController,
   getProductWithVariantController,
 };
+
 

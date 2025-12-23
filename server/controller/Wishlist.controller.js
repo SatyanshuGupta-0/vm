@@ -45,7 +45,72 @@ async function getProductWithVariantController(req, res) {
 
 
 
-async function addToWishlistController(req, res) {
+// async function addToWishlistController(req, res) {
+//   try {
+//     const userId = req.user?.id;
+//     if (!userId) {
+//       return res.status(401).json({
+//         error: true,
+//         success: false,
+//         message: "Unauthorized: user not found",
+//       });
+//     }
+
+//   const {
+//   productId,
+//   variantId,
+//   sizeId,
+// } = req.body;
+
+// if (!productId || !variantId) {
+//   return res.status(400).json({
+//     error: true,
+//     success: false,
+//     message: "productId and variantId are required",
+//   });
+// }
+
+// const existingItem = await wishlistModel.findOne({ userId, productId, variantId, sizeId });
+
+// if (existingItem) {
+//   return res.status(400).json({
+//     error: true,
+//     success: false,
+//     message: "Item already in Wishlist",
+//   });
+// }
+
+// const wishlist = new wishlistModel({
+//   productId,
+//   variantId,
+//   sizeId,
+//   userId,
+// });
+
+
+//     await wishlist.save();
+
+//     // Update user's wishlist array
+//     await userModel.findByIdAndUpdate(userId, {
+//       $push: { wishlist: wishlist._id }
+//     });
+
+//     return res.status(201).json({
+//       error: false,
+//       success: true,
+//       message: "The product saved in the wishlist",
+//       wishlist,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       message: error.message || error,
+//       error: true,
+//       success: false,
+//     });
+//   }
+// }
+
+export async function addToWishlistController(req, res) {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -56,43 +121,59 @@ async function addToWishlistController(req, res) {
       });
     }
 
-  const {
-  productId,
-  variantId,
-  sizeId,
-} = req.body;
+    const { productId, variantId, sizeId } = req.body;
 
-if (!productId || !variantId) {
-  return res.status(400).json({
-    error: true,
-    success: false,
-    message: "productId and variantId are required",
-  });
-}
+    // Validate IDs
+    if (!productId || !variantId) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "productId and variantId are required",
+      });
+    }
 
-const existingItem = await wishlistModel.findOne({ userId, productId, variantId, sizeId });
+    // Ensure valid Mongo ObjectIds
+    if (
+      !mongoose.Types.ObjectId.isValid(productId) ||
+      !mongoose.Types.ObjectId.isValid(variantId) ||
+      (sizeId && !mongoose.Types.ObjectId.isValid(sizeId))
+    ) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "Invalid product, variant, or size ID",
+      });
+    }
 
-if (existingItem) {
-  return res.status(400).json({
-    error: true,
-    success: false,
-    message: "Item already in Wishlist",
-  });
-}
+    // Check if item already exists
+    const existingItem = await wishlistModel.findOne({
+      userId,
+      productId,
+      variantId,
+      sizeId: sizeId || null,
+    });
 
-const wishlist = new wishlistModel({
-  productId,
-  variantId,
-  sizeId,
-  userId,
-});
+    if (existingItem) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "Item already in Wishlist",
+      });
+    }
 
+    // Create new wishlist item
+    const wishlist = new wishlistModel({
+      userId,
+      productId,
+      variantId,
+      sizeId: sizeId || null,
+    });
 
     await wishlist.save();
 
     // Update user's wishlist array
     await userModel.findByIdAndUpdate(userId, {
-      $push: { wishlist: wishlist._id }
+      $addToSet: { wishlist: wishlist._id }, // prevents duplicates
     });
 
     return res.status(201).json({
@@ -102,6 +183,7 @@ const wishlist = new wishlistModel({
       wishlist,
     });
   } catch (error) {
+    console.error("Wishlist add error:", error);
     return res.status(500).json({
       message: error.message || error,
       error: true,
@@ -192,3 +274,4 @@ module.exports = {
   getWishlistController,
   getProductWithVariantController,
 };
+

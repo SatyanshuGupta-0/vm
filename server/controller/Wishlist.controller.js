@@ -45,124 +45,124 @@ async function getProductWithVariantController(req, res) {
 
 
 
-// async function addToWishlistController(req, res) {
-//   try {
-//     const userId = req.user?.id;
-//     if (!userId) {
-//       return res.status(401).json({
-//         error: true,
-//         success: false,
-//         message: "Unauthorized: user not found",
-//       });
-//     }
-
-//   const {
-//   productId,
-//   variantId,
-//   sizeId,
-// } = req.body;
-
-// if (!productId || !variantId) {
-//   return res.status(400).json({
-//     error: true,
-//     success: false,
-//     message: "productId and variantId are required",
-//   });
-// }
-
-// const existingItem = await wishlistModel.findOne({ userId, productId, variantId, sizeId });
-
-// if (existingItem) {
-//   return res.status(400).json({
-//     error: true,
-//     success: false,
-//     message: "Item already in Wishlist",
-//   });
-// }
-
-// const wishlist = new wishlistModel({
-//   productId,
-//   variantId,
-//   sizeId,
-//   userId,
-// });
-
-
-//     await wishlist.save();
-
-//     // Update user's wishlist array
-//     await userModel.findByIdAndUpdate(userId, {
-//       $push: { wishlist: wishlist._id }
-//     });
-
-//     return res.status(201).json({
-//       error: false,
-//       success: true,
-//       message: "The product saved in the wishlist",
-//       wishlist,
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       message: error.message || error,
-//       error: true,
-//       success: false,
-//     });
-//   }
-// }
-
-
-
 async function addToWishlistController(req, res) {
   try {
     const userId = req.user?.id;
-    if (!userId)
-      return res.status(401).json({ message: "Unauthorized: user not found" });
-
-    const { productId, variantId, sizeId } = req.body;
-
-    if (!productId || !variantId)
-      return res.status(400).json({ message: "productId and variantId are required" });
-
-    // Validate IDs
-    if (
-      !mongoose.Types.ObjectId.isValid(productId) ||
-      !mongoose.Types.ObjectId.isValid(variantId) ||
-      (sizeId && !mongoose.Types.ObjectId.isValid(sizeId))
-    ) {
-      return res.status(400).json({ message: "Invalid product, variant, or size ID" });
+    if (!userId) {
+      return res.status(401).json({
+        error: true,
+        success: false,
+        message: "Unauthorized: user not found",
+      });
     }
 
-    // Check if already in wishlist
-    const existingItem = await wishlistModel.findOne({
-      userId,
-      productId,
-      variantId,
-      sizeId: sizeId || null,
-    });
+  const {
+  productId,
+  variantId,
+  sizeId,
+} = req.body;
 
-    if (existingItem) {
-      return res.status(400).json({ message: "Item already in Wishlist" });
-    }
+if (!productId || !variantId) {
+  return res.status(400).json({
+    error: true,
+    success: false,
+    message: "productId and variantId are required",
+  });
+}
 
-    // Save new wishlist item
-    const wishlist = new wishlistModel({
-      userId,
-      productId,
-      variantId,
-      sizeId: sizeId || null,
-    });
+const existingItem = await wishlistModel.findOne({ userId, productId, variantId, sizeId });
+
+if (existingItem) {
+  return res.status(400).json({
+    error: true,
+    success: false,
+    message: "Item already in Wishlist",
+  });
+}
+
+const wishlist = new wishlistModel({
+  productId,
+  variantId,
+  sizeId,
+  userId,
+});
+
 
     await wishlist.save();
 
-    // Update user
-    await userModel.findByIdAndUpdate(userId, { $addToSet: { wishlist: wishlist._id } });
+    // Update user's wishlist array
+    await userModel.findByIdAndUpdate(userId, {
+      $push: { wishlist: wishlist._id }
+    });
 
-    return res.status(201).json({ message: "Added to wishlist", wishlist });
+    return res.status(201).json({
+      error: false,
+      success: true,
+      message: "The product saved in the wishlist",
+      wishlist,
+    });
   } catch (error) {
-    console.error("Wishlist add error:", error);
-    return res.status(500).json({ message: error.message || "Server error" });
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
   }
 }
+
+
+
+// async function addToWishlistController(req, res) {
+//   try {
+//     const userId = req.user?.id;
+//     if (!userId)
+//       return res.status(401).json({ message: "Unauthorized: user not found" });
+
+//     const { productId, variantId, sizeId } = req.body;
+
+//     if (!productId || !variantId)
+//       return res.status(400).json({ message: "productId and variantId are required" });
+
+//     // Validate IDs
+//     if (
+//       !mongoose.Types.ObjectId.isValid(productId) ||
+//       !mongoose.Types.ObjectId.isValid(variantId) ||
+//       (sizeId && !mongoose.Types.ObjectId.isValid(sizeId))
+//     ) {
+//       return res.status(400).json({ message: "Invalid product, variant, or size ID" });
+//     }
+
+//     // Check if already in wishlist
+//     const existingItem = await wishlistModel.findOne({
+//       userId,
+//       productId,
+//       variantId,
+//       sizeId: sizeId || null,
+//     });
+
+//     if (existingItem) {
+//       return res.status(400).json({ message: "Item already in Wishlist" });
+//     }
+
+//     // Save new wishlist item
+//     const wishlist = new wishlistModel({
+//       userId,
+//       productId,
+//       variantId,
+//       sizeId: sizeId || null,
+//     });
+
+//     await wishlist.save();
+
+//     // Update user
+//     await userModel.findByIdAndUpdate(userId, { $addToSet: { wishlist: wishlist._id } });
+
+//     return res.status(201).json({ message: "Added to wishlist", wishlist });
+//   } catch (error) {
+//     console.error("Wishlist add error:", error);
+//     return res.status(500).json({ message: error.message || "Server error" });
+//   }
+// }
 
 async function deleteToWishlistController(req, res) {
   try {
@@ -246,5 +246,6 @@ module.exports = {
   getWishlistController,
   getProductWithVariantController,
 };
+
 
 

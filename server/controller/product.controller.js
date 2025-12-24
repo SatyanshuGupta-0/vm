@@ -39,6 +39,29 @@ exports.createProduct = async (req, res) => {
 
 
 
+exports.getProductBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const product = await Product.findOne({ slug });
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
 // Get all products
 exports.getAllProducts = async (req, res) => {
   try {
@@ -731,6 +754,7 @@ exports.deleteVariantFromProduct = async (req, res) => {
     res.status(500).json({ error: "Server error while deleting variant" });
   }
 };
+
 
 
 

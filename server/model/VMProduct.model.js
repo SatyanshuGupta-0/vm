@@ -72,41 +72,10 @@ const productSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-productSchema.pre("findOneAndUpdate", async function (next) {
-  const update = this.getUpdate();
-
-  if (!update) return next();
-
-  // If slug already exists → do nothing
-  if (update.slug) return next();
-
-  const name = update.name;
-  const brand = update.brand;
-
-  if (!name && !brand) return next();
-
-  const raw = `${brand || ""} ${name || ""}`
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-
-  let slug = raw;
-  let count = 1;
-
-  while (await mongoose.models.Product.findOne({ slug })) {
-    slug = `${raw}-${count++}`;
-  }
-
-  update.slug = slug;
-  this.setUpdate(update);
-
-  next();
-});
 
 
 module.exports = mongoose.model("Product", productSchema);
+
 
 
 

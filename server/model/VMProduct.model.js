@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const slugify = require("slugify");
 
 const productSchema = new mongoose.Schema(
   {
@@ -83,5 +84,6 @@ productSchema.pre("save", function (next) {
 });
 
 module.exports = mongoose.model("Product", productSchema);
+
 
 

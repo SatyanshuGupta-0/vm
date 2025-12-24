@@ -30,6 +30,7 @@ const {
   getPaginatedProducts, 
   deleteVariantFromProduct,
   getAllProduct,
+  getProductBySlug,
 } = require("../controller/product.controller");
 
 
@@ -46,6 +47,7 @@ router.get("/getProducts", isAdmin("superadmin","shopkeeper"), getAllProduct);
 
 // 🧑‍💼 Authenticated or public routes
 router.get('/search', searchProducts); // public
+router.get("/get-by-slug/:slug", getProductBySlug);
 router.get('/getAllProducts', getAllProducts);
 router.get('/getAllProductsByCatId/:id', getAllProductsByCatId);
 router.get('/getAllProductsByCatName', getAllProductsByCatName);
@@ -62,3 +64,4 @@ router.get('/getPaginatedProducts', getPaginatedProducts);
 router.get('/get/:id', getProduct); // single product
 
 module.exports = router;
+

@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const slugify = require("slugify");
 
 const productSchema = new mongoose.Schema(
   {
@@ -73,17 +72,30 @@ const productSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-productSchema.pre("save", function (next) {
-  if (!this.slug) {
-    this.slug = slugify(`${this.brand} ${this.name}`, {
-      lower: true,
-      strict: true,
-    });
+productSchema.pre("save", async function (next) {
+  if (this.slug) return next();
+
+  const raw = `${this.brand} ${this.name}`
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")   // remove special chars
+    .replace(/\s+/g, "-")           // spaces → dash
+    .replace(/-+/g, "-");           // remove extra dashes
+
+  let slug = raw;
+  let count = 1;
+
+  // Ensure UNIQUE slug
+  while (await mongoose.models.Product.findOne({ slug })) {
+    slug = `${raw}-${count++}`;
   }
+
+  this.slug = slug;
   next();
 });
 
 module.exports = mongoose.model("Product", productSchema);
+
 
 
 

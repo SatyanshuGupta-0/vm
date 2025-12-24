@@ -72,6 +72,16 @@ const productSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+productSchema.pre("save", function (next) {
+  if (!this.slug) {
+    this.slug = slugify(`${this.brand} ${this.name}`, {
+      lower: true,
+      strict: true,
+    });
+  }
+  next();
+});
 
 module.exports = mongoose.model("Product", productSchema);
+
 

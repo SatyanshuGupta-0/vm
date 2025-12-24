@@ -106,8 +106,30 @@ productSchema.pre("findOneAndUpdate", async function (next) {
   next();
 });
 
+productSchema.pre("save", async function (next) {
+  if (this.slug) return next();
+
+  const raw = `${this.brand} ${this.name}`
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
+  let slug = raw;
+  let count = 1;
+
+  while (await mongoose.models.Product.findOne({ slug })) {
+    slug = `${raw}-${count++}`;
+  }
+
+  this.slug = slug;
+  next();
+});
+
 
 module.exports = mongoose.model("Product", productSchema);
+
 
 
 

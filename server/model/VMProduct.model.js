@@ -5,7 +5,6 @@ const productSchema = new mongoose.Schema(
     name: { type: String, required: true },
     slug: {
       type: String,
-      required: true,
       unique: true,
       lowercase: true,
       trim: true,
@@ -129,6 +128,7 @@ productSchema.pre("save", async function (next) {
 
 
 module.exports = mongoose.model("Product", productSchema);
+
 
 
 

@@ -99,7 +99,7 @@ const googleLoginController = async (req, res) => {
 
 const registerUserController = async (req, res) => {
   try {
-    const { name, email, password, picture } = req.body;
+    const { name, email, password } = req.body;
     const isGoogleSignup = !password;
 
     if (!name || !email || (!password && !isGoogleSignup)) {
@@ -1934,6 +1934,7 @@ module.exports = {
 //     getAllUsers,
 //     getUserByIdController,
 // };
+
 
 
 

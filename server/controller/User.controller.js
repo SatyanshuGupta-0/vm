@@ -5,7 +5,7 @@ const sendEmailFun = require("../config/sendEmail");
 const { verificationEmail } = require("../utils/verifyEmailTemplate");
 const generatedAccessToken = require("../utils/generatedAccessToken");
 const generatedRefreshToken = require("../utils/generatedRefreshToken");
-// const generateReferralCode = require("../utils/generateReferralCode");
+const generateReferralCode = require("../utils/generateReferralCode");
 const cloudinary = require('../config/cloudinaryConfig');
 const fs = require('fs');
 const { response } = require("express");
@@ -46,7 +46,7 @@ const googleLoginController = async (req, res) => {
         avatar: picture,
         status: "Active",
         role: ["USER"],
-        // referralCode: generateReferralCode(name),
+        referralCode: generateReferralCode(name),
       });
 
       await user.save();
@@ -89,7 +89,7 @@ const googleLoginController = async (req, res) => {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
-           // referralCode: user.referralCode,
+           referralCode: user.referralCode,
         },
       },
     });
@@ -237,21 +237,21 @@ const googleLoginController = async (req, res) => {
 
 const registerUserController = async (req, res) => {
   try {
-    const { name, email, password, picture } = req.body;
+    const { name, email, password, picture, referralCode: refCode } = req.body;
 
     const isGoogleSignup = !password;
 
     if (!name || !email || (!password && !isGoogleSignup)) {
       return res.status(400).json({
         message: "Please provide name, email, and password",
-        error: true,
         success: false,
+        error: true,
       });
     }
 
     const existingUser = await UserModel.findOne({ email });
 
-    // ✅ CASE 1: User already exists
+    // CASE 1: User exists
     if (existingUser) {
       if (existingUser.verify_email) {
         return res.status(400).json({
@@ -280,12 +280,9 @@ const registerUserController = async (req, res) => {
       }
     }
 
-    // ✅ CASE 2: Create new user
+    // CASE 2: Create new user
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const hashPassword = password
-      ? await bcrypt.hash(password, await bcrypt.genSalt(10))
-      : "";
+    const hashPassword = password ? await bcrypt.hash(password, await bcrypt.genSalt(10)) : "";
 
     const newUser = new UserModel({
       name,
@@ -294,16 +291,14 @@ const registerUserController = async (req, res) => {
       otp: verifyCode,
       otpExpires: Date.now() + 600000,
       verify_email: isGoogleSignup ? true : false,
-      avatar: {
-        url: picture || "",
-        publicId: null,
-      },
+      avatar: { url: picture || "", publicId: null },
       role: ["USER"],
+      referralCode: generateReferralCode(name),
+      referredBy: refCode || null,
     });
 
     await newUser.save();
 
-    // 📧 REGULAR SIGNUP FLOW
     if (!isGoogleSignup) {
       const emailSent = await sendEmailFun(
         email,
@@ -320,11 +315,7 @@ const registerUserController = async (req, res) => {
         });
       }
 
-      const token = jwt.sign(
-        { email: newUser.email, id: newUser._id },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
+      const token = jwt.sign({ email: newUser.email, id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
       return res.status(201).json({
         message: "User registered successfully! Please verify your email.",
@@ -334,7 +325,7 @@ const registerUserController = async (req, res) => {
       });
     }
 
-    // ✅ GOOGLE SIGNUP FLOW — generate tokens using utility functions
+    // Google signup flow
     const accessToken = await generatedAccessToken(newUser._id);
     const refreshToken = await generatedRefreshToken(newUser._id);
 
@@ -355,6 +346,7 @@ const registerUserController = async (req, res) => {
           name: newUser.name,
           email: newUser.email,
           avatar: newUser.avatar.url,
+          referralCode: newUser.referralCode,
         },
       },
     });
@@ -1055,6 +1047,7 @@ module.exports = {
     getAllUsers,
     getUserByIdController,
 };
+
 
 
 

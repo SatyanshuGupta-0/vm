@@ -5,6 +5,7 @@ const sendEmailFun = require("../config/sendEmail");
 const { verificationEmail } = require("../utils/verifyEmailTemplate");
 const generatedAccessToken = require("../utils/generatedAccessToken");
 const generatedRefreshToken = require("../utils/generatedRefreshToken");
+const generateReferralCode = require("../utils/generateReferralCode");
 const cloudinary = require('../config/cloudinaryConfig');
 const fs = require('fs');
 const { response } = require("express");
@@ -45,6 +46,7 @@ const googleLoginController = async (req, res) => {
         avatar: picture,
         status: "Active",
         role: ["USER"],
+        referralCode: generateReferralCode(name),
       });
 
       await user.save();
@@ -161,6 +163,7 @@ const registerUserController = async (req, res) => {
         publicId: null,
       },
       role: ["USER"],
+      referralCode: generateReferralCode(name),
     });
 
     await newUser.save();
@@ -294,6 +297,12 @@ const loginUserController = async (req, res) => {
         success: false,
       });
     }
+    // 👇 ADD THIS AFTER USER IS FOUND
+if (!user.referralCode) {
+  user.referralCode = generateReferralCode(user.name);
+  await user.save();
+}
+
 
     const checkPassword = await bcrypt.compare(password, user.password);
     if (!checkPassword) {
@@ -910,4 +919,5 @@ module.exports = {
     getAllUsers,
     getUserByIdController,
 };
+
 

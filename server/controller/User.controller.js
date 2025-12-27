@@ -237,11 +237,7 @@ const googleLoginController = async (req, res) => {
 //     });
 //   }
 // };
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const UserModel = require("../models/User");
-const sendEmailFun = require("../utils/sendEmailFun");
-const verificationEmail = require("../utils/verificationEmail");
+
 
 const registerUserController = async (req, res) => {
   try {
@@ -2071,6 +2067,7 @@ module.exports = {
 //     getAllUsers,
 //     getUserByIdController,
 // };
+
 
 
 

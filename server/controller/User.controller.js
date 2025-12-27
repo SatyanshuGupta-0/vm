@@ -248,11 +248,11 @@ const registerUserController = async (req, res) => {
       });
     }
 
-    const existingUser = await UserModel.findOne({ email });
+    let user = await UserModel.findOne({ email });
 
-    // CASE 1: User already exists
-    if (existingUser) {
-      if (existingUser.verify_email) {
+    // Existing user
+    if (user) {
+      if (user.verify_email) {
         return res.status(400).json({
           message: "User already registered and verified. Please login.",
           success: false,
@@ -260,33 +260,37 @@ const registerUserController = async (req, res) => {
         });
       } else {
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        existingUser.otp = newOtp;
-        existingUser.otpExpires = Date.now() + 600000;
-        await existingUser.save();
+        user.otp = newOtp;
+        user.otpExpires = Date.now() + 600000;
+        await user.save();
 
-        await sendEmailFun(
-          email,
-          "Resend: Verify Email From VM App",
-          "",
-          verificationEmail(existingUser.name || "User", newOtp)
-        );
+        try {
+          await sendEmailFun(
+            email,
+            "Resend: Verify Email From VM App",
+            "",
+            verificationEmail(user.name || "User", newOtp)
+          );
+        } catch (e) {
+          console.error("❌ OTP Email send failed:", e.message || e);
+        }
 
         return res.status(200).json({
           message: "Email already registered but not verified. OTP resent.",
           success: true,
           error: false,
           user: {
-            _id: existingUser._id,
-            name: existingUser.name,
-            email: existingUser.email,
-            referralCode: existingUser.referralCode,
-            verify_email: existingUser.verify_email,
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            referralCode: user.referralCode,
+            verify_email: user.verify_email,
           },
         });
       }
     }
 
-    // CASE 2: Create new user
+    // New user
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
     const hashPassword = password
       ? await bcrypt.hash(password, await bcrypt.genSalt(10))
@@ -309,21 +313,17 @@ const registerUserController = async (req, res) => {
 
     await newUser.save();
 
-    // REGULAR SIGNUP FLOW (email/password)
+    // Send OTP if not Google signup
     if (!isGoogleSignup) {
-      const emailSent = await sendEmailFun(
-        email,
-        "Verify Email From VM App",
-        "",
-        verificationEmail(name, verifyCode)
-      );
-
-      if (!emailSent) {
-        return res.status(500).json({
-          message: "Failed to send verification email",
-          error: true,
-          success: false,
-        });
+      try {
+        await sendEmailFun(
+          email,
+          "Verify Email From VM App",
+          "",
+          verificationEmail(name, verifyCode)
+        );
+      } catch (e) {
+        console.error("❌ OTP Email send failed:", e.message || e);
       }
 
       return res.status(201).json({
@@ -340,10 +340,9 @@ const registerUserController = async (req, res) => {
       });
     }
 
-    // GOOGLE SIGNUP FLOW
+    // Google signup
     const accessToken = await generatedAccessToken(newUser._id);
     const refreshToken = await generatedRefreshToken(newUser._id);
-
     newUser.access_token = accessToken;
     newUser.refresh_token = refreshToken;
     newUser.last_login_date = new Date();
@@ -367,7 +366,7 @@ const registerUserController = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ Registration Error:", error);
+    console.error("❌ Registration Error:", error.message || error);
     return res.status(500).json({
       message: error.message || "Server error",
       error: true,
@@ -1063,6 +1062,7 @@ module.exports = {
     getAllUsers,
     getUserByIdController,
 };
+
 
 
 

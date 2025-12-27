@@ -2,6 +2,38 @@ const jwt = require("jsonwebtoken");
 const UserModel = require("../model/VMUsermodel");
 const generatedAccessToken = require("../utils/generatedAccessToken");
 
+const generateReferralCode = require("../utils/generateReferralCode");
+
+exports.registerUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const referralCode = generateReferralCode(name);
+
+    const user = new UserModel({
+      name,
+      email,
+      password,
+      referralCode,
+    });
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "User registered successfully",
+      referralCode,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Registration failed",
+    });
+  }
+};
+
+
+
 exports.refreshTokenController = async (req, res) => {
   const refreshToken = req.cookies.userRefreshToken;
 
@@ -45,5 +77,6 @@ exports.meController = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error", success: false });
   }
 };
+
 
 

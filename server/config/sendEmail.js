@@ -17,3 +17,4 @@ const sendEmailFun = async (to, subject, text, html) => {
 };
 
 module.exports = sendEmailFun;
+

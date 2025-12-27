@@ -100,10 +100,144 @@ const googleLoginController = async (req, res) => {
 };
 
 
+// const registerUserController = async (req, res) => {
+//   try {
+//     const { name, email, password, picture } = req.body;
+
+//     const isGoogleSignup = !password;
+
+//     if (!name || !email || (!password && !isGoogleSignup)) {
+//       return res.status(400).json({
+//         message: "Please provide name, email, and password",
+//         error: true,
+//         success: false,
+//       });
+//     }
+
+//     const existingUser = await UserModel.findOne({ email });
+
+//     // ✅ CASE 1: User already exists
+//     if (existingUser) {
+//       if (existingUser.verify_email) {
+//         return res.status(400).json({
+//           message: "User already registered and verified. Please login.",
+//           success: false,
+//           error: true,
+//         });
+//       } else {
+//         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+//         existingUser.otp = newOtp;
+//         existingUser.otpExpires = Date.now() + 600000;
+//         await existingUser.save();
+
+//         await sendEmailFun(
+//           email,
+//           "Resend: Verify Email From VM App",
+//           "",
+//           verificationEmail(existingUser.name || "User", newOtp)
+//         );
+
+//         return res.status(200).json({
+//           message: "Email already registered but not verified. OTP resent.",
+//           success: true,
+//           error: false,
+//         });
+//       }
+//     }
+
+//     // ✅ CASE 2: Create new user
+//     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+//     const hashPassword = password
+//       ? await bcrypt.hash(password, await bcrypt.genSalt(10))
+//       : "";
+
+//     const newUser = new UserModel({
+//       name,
+//       email,
+//       password: hashPassword,
+//       otp: verifyCode,
+//       otpExpires: Date.now() + 600000,
+//       verify_email: isGoogleSignup ? true : false,
+//       avatar: {
+//         url: picture || "",
+//         publicId: null,
+//       },
+//       role: ["USER"],
+//       referralCode: generateReferralCode(name || "USER")
+//     });
+
+//     await newUser.save();
+
+//     // 📧 REGULAR SIGNUP FLOW
+//     if (!isGoogleSignup) {
+//       const emailSent = await sendEmailFun(
+//         email,
+//         "Verify Email From VM App",
+//         "",
+//         verificationEmail(name, verifyCode)
+//       );
+
+//       if (!emailSent) {
+//         return res.status(500).json({
+//           message: "Failed to send verification email",
+//           error: true,
+//           success: false,
+//         });
+//       }
+
+//       const token = jwt.sign(
+//         { email: newUser.email, id: newUser._id },
+//         process.env.JWT_SECRET,
+//         { expiresIn: "1h" }
+//       );
+
+//       return res.status(201).json({
+//         message: "User registered successfully! Please verify your email.",
+//         error: false,
+//         success: true,
+//         token,
+//       });
+//     }
+
+//     // ✅ GOOGLE SIGNUP FLOW — generate tokens using utility functions
+//     const accessToken = await generatedAccessToken(newUser._id);
+//     const refreshToken = await generatedRefreshToken(newUser._id);
+
+//     newUser.access_token = accessToken;
+//     newUser.refresh_token = refreshToken;
+//     newUser.last_login_date = new Date();
+//     await newUser.save();
+
+//     return res.status(201).json({
+//       message: "Google signup successful",
+//       success: true,
+//       error: false,
+//       data: {
+//         accessToken,
+//         refreshToken,
+//         user: {
+//           _id: newUser._id,
+//           name: newUser.name,
+//           email: newUser.email,
+//           avatar: newUser.avatar.url,
+//            referralCode: newUser.referralCode,
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("❌ Registration Error:", error);
+//     return res.status(500).json({
+//       message: error.message || "Server error",
+//       error: true,
+//       success: false,
+//     });
+//   }
+// };
+
 const registerUserController = async (req, res) => {
   try {
     const { name, email, password, picture } = req.body;
-
     const isGoogleSignup = !password;
 
     if (!name || !email || (!password && !isGoogleSignup)) {
@@ -116,7 +250,7 @@ const registerUserController = async (req, res) => {
 
     const existingUser = await UserModel.findOne({ email });
 
-    // ✅ CASE 1: User already exists
+    // CASE 1: User already exists
     if (existingUser) {
       if (existingUser.verify_email) {
         return res.status(400).json({
@@ -141,13 +275,19 @@ const registerUserController = async (req, res) => {
           message: "Email already registered but not verified. OTP resent.",
           success: true,
           error: false,
+          user: {
+            _id: existingUser._id,
+            name: existingUser.name,
+            email: existingUser.email,
+            referralCode: existingUser.referralCode,
+            verify_email: existingUser.verify_email,
+          },
         });
       }
     }
 
-    // ✅ CASE 2: Create new user
+    // CASE 2: Create new user
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-
     const hashPassword = password
       ? await bcrypt.hash(password, await bcrypt.genSalt(10))
       : "";
@@ -164,12 +304,12 @@ const registerUserController = async (req, res) => {
         publicId: null,
       },
       role: ["USER"],
-      referralCode: generateReferralCode(name || "USER")
+      referralCode: generateReferralCode(name || "USER"),
     });
 
     await newUser.save();
 
-    // 📧 REGULAR SIGNUP FLOW
+    // REGULAR SIGNUP FLOW (email/password)
     if (!isGoogleSignup) {
       const emailSent = await sendEmailFun(
         email,
@@ -186,21 +326,21 @@ const registerUserController = async (req, res) => {
         });
       }
 
-      const token = jwt.sign(
-        { email: newUser.email, id: newUser._id },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-
       return res.status(201).json({
         message: "User registered successfully! Please verify your email.",
         error: false,
         success: true,
-        token,
+        user: {
+          _id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          referralCode: newUser.referralCode,
+          verify_email: newUser.verify_email,
+        },
       });
     }
 
-    // ✅ GOOGLE SIGNUP FLOW — generate tokens using utility functions
+    // GOOGLE SIGNUP FLOW
     const accessToken = await generatedAccessToken(newUser._id);
     const refreshToken = await generatedRefreshToken(newUser._id);
 
@@ -221,7 +361,8 @@ const registerUserController = async (req, res) => {
           name: newUser.name,
           email: newUser.email,
           avatar: newUser.avatar.url,
-           referralCode: newUser.referralCode,
+          referralCode: newUser.referralCode,
+          verify_email: newUser.verify_email,
         },
       },
     });
@@ -234,6 +375,7 @@ const registerUserController = async (req, res) => {
     });
   }
 };
+
 
 const verifyEmailController = async (req, res) => {
     try {
@@ -921,6 +1063,7 @@ module.exports = {
     getAllUsers,
     getUserByIdController,
 };
+
 
 
 

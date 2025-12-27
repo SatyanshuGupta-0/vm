@@ -5,7 +5,7 @@ const sendEmailFun = require("../config/sendEmail");
 const { verificationEmail } = require("../utils/verifyEmailTemplate");
 const generatedAccessToken = require("../utils/generatedAccessToken");
 const generatedRefreshToken = require("../utils/generatedRefreshToken");
-const generateReferralCode = require("../utils/generateReferralCode");
+// const generateReferralCode = require("../utils/generateReferralCode");
 const cloudinary = require('../config/cloudinaryConfig');
 const fs = require('fs');
 const { response } = require("express");
@@ -46,7 +46,7 @@ const googleLoginController = async (req, res) => {
         avatar: picture,
         status: "Active",
         role: ["USER"],
-        referralCode: generateReferralCode(name),
+        // referralCode: generateReferralCode(name),
       });
 
       await user.save();
@@ -89,7 +89,7 @@ const googleLoginController = async (req, res) => {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
-           referralCode: user.referralCode,
+           // referralCode: user.referralCode,
         },
       },
     });
@@ -164,7 +164,7 @@ const registerUserController = async (req, res) => {
         publicId: null,
       },
       role: ["USER"],
-      referralCode: generateReferralCode(name || "USER")
+      // referralCode: generateReferralCode(name || "USER")
     });
 
     await newUser.save();
@@ -221,7 +221,7 @@ const registerUserController = async (req, res) => {
           name: newUser.name,
           email: newUser.email,
           avatar: newUser.avatar.url,
-           referralCode: newUser.referralCode,
+           // referralCode: newUser.referralCode,
         },
       },
     });
@@ -923,6 +923,7 @@ module.exports = {
     getAllUsers,
     getUserByIdController,
 };
+
 
 
 

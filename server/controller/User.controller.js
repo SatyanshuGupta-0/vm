@@ -100,54 +100,37 @@ const googleLoginController = async (req, res) => {
 const registerUserController = async (req, res) => {
   try {
     const { name, email, password, picture } = req.body;
-
     const isGoogleSignup = !password;
 
     if (!name || !email || (!password && !isGoogleSignup)) {
-      return res.status(400).json({
-        message: "Please provide name, email, and password",
-        error: true,
-        success: false,
-      });
+      return res.status(400).json({ message: "Name, email, and password required", success: false });
     }
 
     const existingUser = await UserModel.findOne({ email });
 
-    // ✅ CASE 1: User already exists
+    // User exists
     if (existingUser) {
       if (existingUser.verify_email) {
-        return res.status(400).json({
-          message: "User already registered and verified. Please login.",
-          success: false,
-          error: true,
-        });
+        return res.status(400).json({ message: "User already registered. Please login.", success: false });
       } else {
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
         existingUser.otp = newOtp;
         existingUser.otpExpires = Date.now() + 600000;
         await existingUser.save();
 
-        await sendEmailFun(
-          email,
-          "Resend: Verify Email From VM App",
-          "",
-          verificationEmail(existingUser.name || "User", newOtp)
-        );
+        try {
+          await sendEmailFun(email, "Resend OTP", "", verificationEmail(existingUser.name || "User", newOtp));
+        } catch (err) {
+          console.error("Email send failed:", err);
+        }
 
-        return res.status(200).json({
-          message: "Email already registered but not verified. OTP resent.",
-          success: true,
-          error: false,
-        });
+        return res.status(200).json({ message: "Email already registered but not verified. OTP resent.", success: true });
       }
     }
 
-    // ✅ CASE 2: Create new user
+    // New user
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const hashPassword = password
-      ? await bcrypt.hash(password, await bcrypt.genSalt(10))
-      : "";
+    const hashPassword = password ? await bcrypt.hash(password, await bcrypt.genSalt(10)) : "";
 
     const newUser = new UserModel({
       name,
@@ -156,68 +139,51 @@ const registerUserController = async (req, res) => {
       otp: verifyCode,
       otpExpires: Date.now() + 600000,
       verify_email: isGoogleSignup ? true : false,
-      avatar: {
-        url: picture || "",
-        publicId: null,
-      },
+      avatar: { url: picture || "", publicId: null },
       role: ["USER"],
     });
 
     await newUser.save();
 
-    // 📧 For regular signup — send verification email
+    // Regular signup — send email
     if (!isGoogleSignup) {
-      const emailSent = await sendEmailFun(
-        email,
-        "Verify Email From VM App",
-        "",
-        verificationEmail(name, verifyCode)
-      );
-
-      if (!emailSent) {
-        return res.status(500).json({
-          message: "Failed to send verification email",
-          error: true,
-          success: false,
-        });
+      try {
+        await sendEmailFun(email, "Verify Email", "", verificationEmail(name, verifyCode));
+      } catch (err) {
+        console.error("Email send failed:", err);
       }
 
-      const token = jwt.sign(
-        { email: newUser.email, id: newUser._id },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
+      let token;
+      try {
+        token = jwt.sign({ email: newUser.email, id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+      } catch (err) {
+        console.error("JWT sign failed:", err);
+      }
 
       return res.status(201).json({
         message: "User registered successfully! Please verify your email.",
-        error: false,
         success: true,
-        token,
+        token: token || null,
       });
     }
 
-    // ✅ For Google signup — skip email verification and return tokens
-    const accessToken = jwt.sign(
-      { id: newUser._id },
-      process.env.JWT_ACCESS_SECRET,
-      { expiresIn: "15m" }
-    );
-
-    const refreshToken = jwt.sign(
-      { id: newUser._id },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    newUser.access_token = accessToken;
-    newUser.refresh_token = refreshToken;
-    newUser.last_login_date = new Date();
-    await newUser.save();
+    // Google signup — return tokens
+    let accessToken, refreshToken;
+    try {
+      accessToken = jwt.sign({ id: newUser._id }, process.env.JWT_ACCESS_SECRET, { expiresIn: "15m" });
+      refreshToken = jwt.sign({ id: newUser._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+      newUser.access_token = accessToken;
+      newUser.refresh_token = refreshToken;
+      newUser.last_login_date = new Date();
+      await newUser.save();
+    } catch (err) {
+      console.error("Google token generation failed:", err);
+      return res.status(500).json({ message: "Token generation failed", success: false });
+    }
 
     return res.status(201).json({
       message: "Google signup successful",
       success: true,
-      error: false,
       data: {
         accessToken,
         refreshToken,
@@ -230,12 +196,8 @@ const registerUserController = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ Registration Error:", error);
-    return res.status(500).json({
-      message: error.message || "Server error",
-      error: true,
-      success: false,
-    });
+    console.error("Registration Error:", error);
+    return res.status(500).json({ message: "Server error", success: false });
   }
 };
 
@@ -1972,6 +1934,7 @@ module.exports = {
 //     getAllUsers,
 //     getUserByIdController,
 // };
+
 
 
 

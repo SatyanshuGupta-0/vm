@@ -89,6 +89,7 @@ const googleLoginController = async (req, res) => {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
+           referralCode: user.referralCode,
         },
       },
     });
@@ -220,6 +221,7 @@ const registerUserController = async (req, res) => {
           name: newUser.name,
           email: newUser.email,
           avatar: newUser.avatar.url,
+           referralCode: newUser.referralCode,
         },
       },
     });
@@ -919,5 +921,6 @@ module.exports = {
     getAllUsers,
     getUserByIdController,
 };
+
 
 

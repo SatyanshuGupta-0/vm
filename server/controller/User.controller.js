@@ -473,6 +473,9 @@ if (!user.referralCode) {
       message: "Login successful",
       error: false,
       success: true,
+      data: {
+        referralCode: user.referralCode,
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -1059,6 +1062,7 @@ module.exports = {
     getAllUsers,
     getUserByIdController,
 };
+
 
 
 

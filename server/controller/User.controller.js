@@ -238,14 +238,19 @@ const registerUserController = async (req, res) => {
 
       // 📧 EMAIL IN BACKGROUND
       setImmediate(async () => {
-        await sendEmailFun(
-          email,
-          "Verify Your Email",
-          "",
-          verificationEmail(existingUser.name, otp),
-          console.log("emial send done")
-        );
-      });
+  try {
+    await sendEmailFun(
+      email,
+      "Verify Your Email",
+      "",
+      verificationEmail(existingUser.name || "User", otp)
+    );
+    console.log("✅ OTP email resent");
+  } catch (err) {
+    console.error("❌ Email error:", err.message);
+  }
+});
+
 
       return;
     }
@@ -283,14 +288,14 @@ const registerUserController = async (req, res) => {
       email,
       "Verify Your Email",
       "",
-      verificationEmail(existingUser.name, otp)
+      verificationEmail(newUser.name || "User", otp)
     );
-
-    console.log("✅ Email send done");
+    console.log("✅ OTP email sent");
   } catch (err) {
-    console.error("❌ Email send failed:", err.message);
+    console.error("❌ Email error:", err.message);
   }
 });
+
 
 
       return;
@@ -2069,6 +2074,7 @@ module.exports = {
 //     getAllUsers,
 //     getUserByIdController,
 // };
+
 
 
 

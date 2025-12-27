@@ -33,65 +33,35 @@
 
 // module.exports = sendEmail;
 
-// const nodemailer = require("nodemailer");
-
-// const transporter = nodemailer.createTransport({
-//   host: "smtp.gmail.com",
-//   port: 465,
-//   secure: true,
-//   auth: {
-//     user: process.env.EMAIL,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
-
-// const sendEmail = async (to, subject, text, html) => {
-//   if (!to) throw new Error("Recipient email missing");
-
-//   await transporter.sendMail({
-//     from: process.env.EMAIL,
-//     to,
-//     subject,
-//     text,
-//     html,
-//   });
-
-//   return true;
-// };
-
-// module.exports = sendEmail;
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,          // 🔥 use 465 (SSL)
-  secure: true,       // MUST be true for 465
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS, // APP PASSWORD
+    pass: process.env.EMAIL_PASS,
   },
-  connectionTimeout: 10 * 1000, // 10 sec
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ SMTP verify failed:", error);
-  } else {
-    console.log("✅ SMTP server is ready");
-  }
 });
 
 const sendEmail = async (to, subject, text, html) => {
-  return await transporter.sendMail({
-    from: `"Your App" <${process.env.EMAIL}>`,
+  if (!to) throw new Error("Recipient email missing");
+
+  await transporter.sendMail({
+    from: process.env.EMAIL,
     to,
     subject,
     text,
     html,
   });
+
+  return true;
 };
 
 module.exports = sendEmail;
+
+
 
 
 

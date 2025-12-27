@@ -1,37 +1,37 @@
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // true for port 465, false for other ports
-    auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+// const transporter = nodemailer.createTransport({
+//     host: "smtp.gmail.com",
+//     port: 465,
+//     secure: true, // true for port 465, false for other ports
+//     auth: {
+//         user: process.env.EMAIL,
+//         pass: process.env.EMAIL_PASS,
+//     },
+// });
 
-const sendEmail = async (to, subject, text, html) => {
-    try {
-        // Validate recipient email
-        if (!to) throw new Error("Recipient email is not defined");
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) throw new Error("Invalid email format");
+// const sendEmail = async (to, subject, text, html) => {
+//     try {
+//         // Validate recipient email
+//         if (!to) throw new Error("Recipient email is not defined");
+//         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) throw new Error("Invalid email format");
 
-        const info = await transporter.sendMail({
-            from: process.env.EMAIL, // Sender's address
-            to, // Recipient's address
-            subject, // Subject line
-            text, // Plain text body
-            html, // HTML body
-        });
+//         const info = await transporter.sendMail({
+//             from: process.env.EMAIL, // Sender's address
+//             to, // Recipient's address
+//             subject, // Subject line
+//             text, // Plain text body
+//             html, // HTML body
+//         });
 
-        return ("Email sent successfully:", info.messageId);
-    } catch (error) {
-        console.error("Error sending email:", error);
-        return false;
-    }
-};
+//         return ("Email sent successfully:", info.messageId);
+//     } catch (error) {
+//         console.error("Error sending email:", error);
+//         return false;
+//     }
+// };
 
-module.exports = sendEmail;
+// module.exports = sendEmail;
 
 // const nodemailer = require("nodemailer");
 
@@ -60,6 +60,40 @@ module.exports = sendEmail;
 // };
 
 // module.exports = sendEmail;
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,          // 🔥 use 465 (SSL)
+  secure: true,       // MUST be true for 465
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.EMAIL_PASS, // APP PASSWORD
+  },
+  connectionTimeout: 10 * 1000, // 10 sec
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ SMTP verify failed:", error);
+  } else {
+    console.log("✅ SMTP server is ready");
+  }
+});
+
+const sendEmail = async (to, subject, text, html) => {
+  return await transporter.sendMail({
+    from: `"Your App" <${process.env.EMAIL}>`,
+    to,
+    subject,
+    text,
+    html,
+  });
+};
+
+module.exports = sendEmail;
+
+
 
 
 

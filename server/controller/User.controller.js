@@ -188,6 +188,7 @@ const registerUserController = async (req, res) => {
         publicId: null,
       },
       role: ["USER"],
+      referralCode: generateReferralCode(name || "USER")
     });
 
     await newUser.save();
@@ -199,6 +200,7 @@ const registerUserController = async (req, res) => {
       message: isGoogleSignup
         ? "Google signup successful"
         : "Registered successfully. OTP sent.",
+      
     });
 
     // 📧 EMAIL (NORMAL SIGNUP ONLY)
@@ -1057,6 +1059,7 @@ module.exports = {
     getAllUsers,
     getUserByIdController,
 };
+
 
 
 

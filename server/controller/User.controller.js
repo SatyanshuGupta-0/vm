@@ -243,6 +243,7 @@ const registerUserController = async (req, res) => {
           "Verify Your Email",
           "",
           verificationEmail(existingUser.name, otp)
+          console.log("emial send done")
         );
       });
 
@@ -2061,6 +2062,7 @@ module.exports = {
 //     getAllUsers,
 //     getUserByIdController,
 // };
+
 
 
 

@@ -98,19 +98,19 @@ const userSchema = new mongoose.Schema({
         ],
         default: ["USER"]
     },
-    referralCode: {
-  type: String,
-  unique: true
-},
-referredBy: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User",
-  default: null
-},
-walletBalance: {
-  type: Number,
-  default: 0
-},
+//     referralCode: {
+//   type: String,
+//   unique: true
+// },
+// referredBy: {
+//   type: mongoose.Schema.Types.ObjectId,
+//   ref: "User",
+//   default: null
+// },
+// walletBalance: {
+//   type: Number,
+//   default: 0
+// },
 
     saveChanges: [
         {
@@ -125,4 +125,5 @@ walletBalance: {
 const UserModel = mongoose.model("user", userSchema);
 
 module.exports = UserModel;
+
 

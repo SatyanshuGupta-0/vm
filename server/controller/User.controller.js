@@ -278,13 +278,20 @@ const registerUserController = async (req, res) => {
 
       // 📧 EMAIL AFTER RESPONSE
       setImmediate(async () => {
-        await sendEmailFun(
-          email,
-          "Verify Your Email",
-          "",
-          verificationEmail(name, otp)
-        );
-      });
+  try {
+    await sendEmailFun(
+      email,
+      "Verify Your Email",
+      "",
+      verificationEmail(existingUser.name, otp)
+    );
+
+    console.log("✅ Email send done");
+  } catch (err) {
+    console.error("❌ Email send failed:", err.message);
+  }
+});
+
 
       return;
     }
@@ -2062,6 +2069,7 @@ module.exports = {
 //     getAllUsers,
 //     getUserByIdController,
 // };
+
 
 
 

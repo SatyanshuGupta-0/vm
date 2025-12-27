@@ -1,44 +1,34 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS,
-  },
-
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-});
-
-// 🔍 VERIFY SMTP ON START
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ SMTP VERIFY FAILED:", error.message);
-  } else {
-    console.log("✅ SMTP SERVER READY");
-  }
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true, // true for port 465, false for other ports
+    auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS,
+    },
 });
 
 const sendEmail = async (to, subject, text, html) => {
-  console.log("📨 [EMAIL_SERVICE] sendMail started");
+    try {
+        // Validate recipient email
+        if (!to) throw new Error("Recipient email is not defined");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) throw new Error("Invalid email format");
 
-  if (!to) throw new Error("Recipient email missing");
+        const info = await transporter.sendMail({
+            from: process.env.EMAIL, // Sender's address
+            to, // Recipient's address
+            subject, // Subject line
+            text, // Plain text body
+            html, // HTML body
+        });
 
-  const info = await transporter.sendMail({
-    from: `"VM App" <${process.env.EMAIL}>`,
-    to,
-    subject,
-    text,
-    html,
-  });
-
-  console.log("✅ [EMAIL_SERVICE] Email sent:", info.messageId);
-  return true;
+        return ("Email sent successfully:", info.messageId);
+    } catch (error) {
+        console.error("Error sending email:", error);
+        return false;
+    }
 };
 
 module.exports = sendEmail;

@@ -164,7 +164,7 @@ const registerUserController = async (req, res) => {
         publicId: null,
       },
       role: ["USER"],
-      referralCode: generateReferralCode(name),
+      // referralCode: generateReferralCode(name),
     });
 
     await newUser.save();
@@ -221,7 +221,7 @@ const registerUserController = async (req, res) => {
           name: newUser.name,
           email: newUser.email,
           avatar: newUser.avatar.url,
-           referralCode: newUser.referralCode,
+           // referralCode: newUser.referralCode,
         },
       },
     });
@@ -921,6 +921,7 @@ module.exports = {
     getAllUsers,
     getUserByIdController,
 };
+
 
 
 

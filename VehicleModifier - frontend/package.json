@@ -1,0 +1,55 @@
+{
+  "name": "vmbackend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+  "postbuild": "node generate-sitemap.mjs"
+
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^6.4.0",
+    "@react-oauth/google": "^0.12.2",
+    "axios": "^1.8.4",
+    "cloudinary": "^2.5.1",
+    "jwt-decode": "^4.0.0",
+    "multer": "^1.4.5-lts.1",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.3.1",
+    "react-color": "^2.19.3",
+    "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5",
+    "react-icons": "^5.4.0",
+    "react-router-dom": "^7.1.1",
+    "sitemap": "^8.0.0",
+    "swiper": "^11.2.8",
+    "tailwind-scrollbar-hide": "^4.0.0",
+    "three": "^0.171.0",
+    "three.js": "^0.77.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.13.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.0.3"
+  },
+  "description": "vm",
+  "main": "eslint.config.js",
+  "author": "Satyanshu Gupta",
+  "license": "ISC"
+}

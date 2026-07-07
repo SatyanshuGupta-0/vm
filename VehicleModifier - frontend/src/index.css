@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  }
+  
+  canvas{
+    position: absolute;
+    top: 0px;
+    margin-left: auto;
+    border: 10px;
+    z-index: -999;
+  }

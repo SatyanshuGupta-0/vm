@@ -1,0 +1,224 @@
+ const [data, setData] = useState({
+    brand: "BrandName",
+    models: [
+      {
+        name: "Model-1",
+        sizes: [
+          {
+            size: 15,
+            width: "15x7",
+            colors: [
+              {
+                name: { nikename: "ColorNick", fullname: "ColorFullName" },
+                imgUrl: [{ img: "https://example.com/img1.jpg" }],
+                modelLink: "https://example.com/model.glb",
+                price: 100,
+                holes: [{ count: 4, pcd: "100", cb: "67.1", et: "25" }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  const handleUpdateBrand = (e) => {
+    setData({ ...data, brand: e.target.value });
+  };
+
+  const handleAddModel = () => {
+    setData({
+      ...data,
+      models: [...data.models, { name: "New Model", sizes: [] }],
+    });
+  };
+
+  const handleAddSize = (modelIndex) => {
+    const updatedModels = [...data.models];
+    updatedModels[modelIndex].sizes.push({ size: 0, width: "", colors: [] });
+    setData({ ...data, models: updatedModels });
+  };
+
+  const handleAddColor = (modelIndex, sizeIndex) => {
+    const updatedModels = [...data.models];
+    updatedModels[modelIndex].sizes[sizeIndex].colors.push({
+      name: { nikename: "", fullname: "" },
+      imgUrl: [],
+      modelLink: "",
+      price: 0,
+      holes: [],
+    });
+    setData({ ...data, models: updatedModels });
+  };
+
+  // Add a predefined number of holes
+  const handleAddHoles = (modelIndex, sizeIndex, colorIndex, holeCount) => {
+    const updatedModels = [...data.models];
+    for (let i = 0; i < holeCount; i++) {
+      updatedModels[modelIndex].sizes[sizeIndex].colors[colorIndex].holes.push({
+        count: 0,
+        pcd: "",
+        cb: "",
+        et: "",
+      });
+    }
+    setData({ ...data, models: updatedModels });
+  };
+
+  // Add multiple images
+  const handleAddImages = (modelIndex, sizeIndex, colorIndex, imageCount) => {
+    const updatedModels = [...data.models];
+    for (let i = 0; i < imageCount; i++) {
+      updatedModels[modelIndex].sizes[sizeIndex].colors[colorIndex].imgUrl.push({
+        img: "",
+      });
+    }
+    setData({ ...data, models: updatedModels });
+  };
+
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
+      <div className="mb-6">
+        <label className="block font-medium">Brand Name:</label>
+        <input
+          type="text"
+          value={data.brand}
+          onChange={handleUpdateBrand}
+          className="border p-2 rounded w-full"
+        />
+      </div>
+
+      <h2 className="text-xl font-semibold">Models</h2>
+      {data.models.map((model, modelIndex) => (
+        <div key={modelIndex} className="border p-4 mt-4 rounded">
+          <label className="block font-medium">Model Name:</label>
+          <input
+            type="text"
+            value={model.name}
+            onChange={(e) => {
+              const updatedModels = [...data.models];
+              updatedModels[modelIndex].name = e.target.value;
+              setData({ ...data, models: updatedModels });
+            }}
+            className="border p-2 rounded w-full mb-2"
+          />
+          <button
+            onClick={() => handleAddSize(modelIndex)}
+            className="bg-blue-500 text-white py-1 px-3 rounded"
+          >
+            Add Size
+          </button>
+
+          {model.sizes.map((size, sizeIndex) => (
+            <div key={sizeIndex} className="border p-4 mt-2 rounded">
+              <label className="block font-medium">Size:</label>
+              <input
+                type="number"
+                value={size.size}
+                onChange={(e) => {
+                  const updatedModels = [...data.models];
+                  updatedModels[modelIndex].sizes[sizeIndex].size = e.target.value;
+                  setData({ ...data, models: updatedModels });
+                }}
+                className="border p-2 rounded w-full mb-2"
+              />
+              <label className="block font-medium">Width:</label>
+              <input
+                type="text"
+                value={size.width}
+                onChange={(e) => {
+                  const updatedModels = [...data.models];
+                  updatedModels[modelIndex].sizes[sizeIndex].width = e.target.value;
+                  setData({ ...data, models: updatedModels });
+                }}
+                className="border p-2 rounded w-full mb-2"
+              />
+              <button
+                onClick={() => handleAddColor(modelIndex, sizeIndex)}
+                className="bg-green-500 text-white py-1 px-3 rounded"
+              >
+                Add Color
+              </button>
+
+              {size.colors.map((color, colorIndex) => (
+                <div key={colorIndex} className="border p-4 mt-2 rounded">
+                  <label className="block font-medium">Nickname:</label>
+                  <input
+                    type="text"
+                    value={color.name.nikename}
+                    onChange={(e) => {
+                      const updatedModels = [...data.models];
+                      updatedModels[modelIndex].sizes[sizeIndex].colors[colorIndex].name.nikename =
+                        e.target.value;
+                      setData({ ...data, models: updatedModels });
+                    }}
+                    className="border p-2 rounded w-full mb-2"
+                  />
+                  <label className="block font-medium">Full Name:</label>
+                  <input
+                    type="text"
+                    value={color.name.fullname}
+                    onChange={(e) => {
+                      const updatedModels = [...data.models];
+                      updatedModels[modelIndex].sizes[sizeIndex].colors[colorIndex].name.fullname =
+                        e.target.value;
+                      setData({ ...data, models: updatedModels });
+                    }}
+                    className="border p-2 rounded w-full mb-2"
+                  />
+                  <label className="block font-medium">Model Link:</label>
+                  <input
+                    type="text"
+                    value={color.modelLink}
+                    onChange={(e) => {
+                      const updatedModels = [...data.models];
+                      updatedModels[modelIndex].sizes[sizeIndex].colors[colorIndex].modelLink =
+                        e.target.value;
+                      setData({ ...data, models: updatedModels });
+                    }}
+                    className="border p-2 rounded w-full mb-2"
+                  />
+                  <label className="block font-medium">Price:</label>
+                  <input
+                    type="number"
+                    value={color.price}
+                    onChange={(e) => {
+                      const updatedModels = [...data.models];
+                      updatedModels[modelIndex].sizes[sizeIndex].colors[colorIndex].price =
+                        parseFloat(e.target.value);
+                      setData({ ...data, models: updatedModels });
+                    }}
+                    className="border p-2 rounded w-full mb-2"
+                  />
+                  <button
+                    onClick={() =>
+                      handleAddHoles(modelIndex, sizeIndex, colorIndex, 3)
+                    }
+                    className="bg-purple-500 text-white py-1 px-3 rounded"
+                  >
+                    Add 3 Holes
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleAddImages(modelIndex, sizeIndex, colorIndex, 3)
+                    }
+                    className="bg-orange-500 text-white py-1 px-3 rounded ml-2"
+                  >
+                    Add 3 Images
+                  </button>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+
+      <button
+        onClick={handleAddModel}
+        className="bg-gray-800 text-white py-2 px-4 rounded mt-6"
+      >
+        Add Model
+      </button>
+    </div>
+  );
